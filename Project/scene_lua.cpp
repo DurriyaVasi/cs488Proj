@@ -80,6 +80,10 @@ struct gr_material_ud {
   Material* material;
 };
 
+struct gr_texture_ud {
+  Texture* texture;
+};
+
 // Create a node
 extern "C"
 int gr_node_cmd(lua_State* L)
@@ -198,6 +202,30 @@ int gr_material_cmd(lua_State* L)
   return 1;
 }
 
+// Create a texture
+extern "C"
+int gr_texture_cmd(lua_State* L)
+{
+  GRLUA_DEBUG_CALL;
+  
+  gr_texture_ud* data = (gr_texture_ud*)lua_newuserdata(L, sizeof(gr_texture_ud));
+  data->texture = 0;
+  
+  luaL_checktype(L, 1, LUA_TBOOLEAN);
+
+  luaL_checktype(L, 2, LUA_TSTRING);
+
+  bool hasTexture = luaL_checkboolean(L, 1);
+  const char* file = luaL_checkstring(L, 2);
+  data->hasTexture = hasTexture;
+  data->file = file;
+
+  luaL_newmetatable(L, "gr.texture");
+  lua_setmetatable(L, -2);
+
+  return 1; 
+}
+
 // Add a child to a node
 extern "C"
 int gr_node_add_child_cmd(lua_State* L)
@@ -242,6 +270,29 @@ int gr_node_set_material_cmd(lua_State* L)
 
   return 0;
 }
+
+// Set a node's texture
+extern "C"
+int gr_node_set_texture_cmd(lua_State* L) {
+  GRLUA_DEBUG_CALL;
+
+  gr_node_ud* selfdata = (gr_node_ud*)luaL_checkudata(L, 1, "gr.node");
+  luaL_argcheck(L, selfdata != 0, 1, "Node expected");
+  
+  GeometryNode* self = dynamic_cast<GeometryNode*>(selfdata->node);
+
+  luaL_argcheck(L, self != 0, 1, "Geometry node expected");
+
+  gr_texture_ud* texdata = (gr_material_ud*)luaL_checkudata(L, 2, "gr.texture");
+  luaL_argcheck(L, texData != 0, 2, "Texture expected");
+
+	Texture * texture = texData->texture;
+	self->texture.hasTexture = textture->hasTexture;
+	self->texture.file = texture->file;
+
+  return 0;
+} 
+
 
 // Add a scaling transformation to a node.
 extern "C"
@@ -342,6 +393,7 @@ static const luaL_Reg grlib_functions[] = {
   {"joint", gr_joint_cmd},
   {"mesh", gr_mesh_cmd},
   {"material", gr_material_cmd},
+  {"texture", gr_texture_cmd},
   {0, 0}
 };
 
@@ -361,6 +413,7 @@ static const luaL_Reg grlib_node_methods[] = {
   {"__gc", gr_node_gc_cmd},
   {"add_child", gr_node_add_child_cmd},
   {"set_material", gr_node_set_material_cmd},
+  {"set_texture", gr_node_set_texture_cmd},
   {"scale", gr_node_scale_cmd},
   {"rotate", gr_node_rotate_cmd},
   {"translate", gr_node_translate_cmd},

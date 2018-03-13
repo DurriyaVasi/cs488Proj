@@ -25,9 +25,11 @@ A3::A3(const std::string & luaSceneFile)
 	: m_luaSceneFile(luaSceneFile),
 	  m_positionAttribLocation(0),
 	  m_normalAttribLocation(0),
+	  m_textureCoordAttribLocation(0),
 	  m_vao_meshData(0),
 	  m_vbo_vertexPositions(0),
 	  m_vbo_vertexNormals(0),
+	  m_vbo_vertexTextureCoords(0),
 	  m_vao_arcCircle(0),
 	  m_vbo_arcCircle(0),
 	  pickingMode(0),
@@ -176,6 +178,10 @@ void A3::enableVertexShaderInputSlots()
 		m_normalAttribLocation = m_shader.getAttribLocation("normal");
 		glEnableVertexAttribArray(m_normalAttribLocation);
 
+		// Enable the vertex shader attribute location for "textureCoord" when rendering.
+                m_normalAttribLocation = m_shader.getAttribLocation("textureCoord");
+                glEnableVertexAttribArray(m_textureCoordAttribLocation);
+
 		CHECK_GL_ERRORS;
 	}
 
@@ -225,6 +231,19 @@ void A3::uploadVertexDataToVbos (
 		CHECK_GL_ERRORS;
 	}
 
+	// Generate VBO to store all vertex texture data
+	{
+		glGenBuffers(1, &m_vbo_vertexTextureCoords);
+
+		glBindBuffer(GL_ARRAY_BUFFER, m_vbo_vertexTextureCoords);
+
+		glBufferData(GL_ARRAY_BUFFER, meshConsolidator.getNumVertexTextureBytes(),
+				meshConsolidator.getVertexTextureDataPtr(), GL_STATIC_DRAW);
+
+		glBindBuffer(GL_ARRAY_BUFFER, 0);
+		CHECK_GL_ERRORS;
+	}
+
 	// Generate VBO to store the trackball circle.
 	{
 		glGenBuffers( 1, &m_vbo_arcCircle );
@@ -259,6 +278,11 @@ void A3::mapVboDataToVertexShaderInputLocations()
 	// "normal" vertex attribute location for any bound vertex shader program.
 	glBindBuffer(GL_ARRAY_BUFFER, m_vbo_vertexNormals);
 	glVertexAttribPointer(m_normalAttribLocation, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
+
+	// Tell GL how to map data from the vertex buffer "m_vbo_vertexTextureCoords" into the
+        // "textureCoord" vertex attribute location for any bound vertex shader program.
+        glBindBuffer(GL_ARRAY_BUFFER, m_vbo_vertexTextureCoords);
+        glVertexAttribPointer(m_textureCoordAttribLocation, 2, GL_FLOAT, GL_FALSE, 0, nullptr);
 
 	//-- Unbind target, and restore default values:
 	glBindBuffer(GL_ARRAY_BUFFER, 0);

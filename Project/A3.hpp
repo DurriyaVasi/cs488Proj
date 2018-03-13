@@ -73,8 +73,10 @@ protected:
 	GLuint m_vao_meshData;
 	GLuint m_vbo_vertexPositions;
 	GLuint m_vbo_vertexNormals;
+	GLuint m_vbo_vertexTextureCoords;
 	GLint m_positionAttribLocation;
 	GLint m_normalAttribLocation;
+	GLint m_textureCoordAttribLocation;
 	ShaderProgram m_shader;
 
 	//-- GL resources for trackball circle geometry:
