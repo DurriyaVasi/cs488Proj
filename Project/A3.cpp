@@ -7,6 +7,8 @@ using namespace std;
 #include "GeometryNode.hpp"
 #include "JointNode.hpp"
 
+#include "stb_image.h"
+
 #include <imgui/imgui.h>
 
 #include <glm/gtc/type_ptr.hpp>
@@ -26,6 +28,7 @@ A3::A3(const std::string & luaSceneFile)
 	  m_positionAttribLocation(0),
 	  m_normalAttribLocation(0),
 	  m_textureCoordAttribLocation(0),
+	  m_fs_texture(0),
 	  m_vao_meshData(0),
 	  m_vbo_vertexPositions(0),
 	  m_vbo_vertexNormals(0),
@@ -93,6 +96,9 @@ void A3::init()
 	glGenVertexArrays(1, &m_vao_meshData);
 	enableVertexShaderInputSlots();
 
+	glGenTextures(1, &m_fs_texture);
+	setupTextureParameters();
+
 	processLuaSceneFile(m_luaSceneFile);
 
 	// Load and decode all .obj files at once here.  You may add additional .obj files to
@@ -104,7 +110,6 @@ void A3::init()
 			getAssetFilePath("sphere.obj"),
 			getAssetFilePath("suzanne.obj")
 	});
-
 
 	// Acquire the BatchInfoMap from the MeshConsolidator.
 	meshConsolidator->getBatchInfoMap(m_batchInfoMap);
@@ -131,6 +136,8 @@ void A3::init()
 	// all vertex data resources.  This is fine since we already copied this data to
 	// VBOs on the GPU.  We have no use for storing vertex data on the CPU side beyond
 	// this point.
+
+	std::cout << "Done init" << std::endl;
 }
 
 //----------------------------------------------------------------------------------------
@@ -179,7 +186,7 @@ void A3::enableVertexShaderInputSlots()
 		glEnableVertexAttribArray(m_normalAttribLocation);
 
 		// Enable the vertex shader attribute location for "textureCoord" when rendering.
-                m_normalAttribLocation = m_shader.getAttribLocation("textureCoord");
+                m_textureCoordAttribLocation = m_shader.getAttribLocation("textureCoord");
                 glEnableVertexAttribArray(m_textureCoordAttribLocation);
 
 		CHECK_GL_ERRORS;
@@ -199,6 +206,24 @@ void A3::enableVertexShaderInputSlots()
 
 	// Restore defaults
 	glBindVertexArray(0);
+}
+
+void A3::setupTextureParameters() {
+	{
+		glBindTexture(GL_TEXTURE_2D, m_fs_texture);
+		CHECK_GL_ERRORS;
+	
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+		CHECK_GL_ERRORS;
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+		CHECK_GL_ERRORS;
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+		CHECK_GL_ERRORS;
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+		CHECK_GL_ERRORS;
+	}
+	glBindTexture(GL_TEXTURE_2D, 0);
 }
 
 //----------------------------------------------------------------------------------------
@@ -560,7 +585,8 @@ static void updateShaderUniforms(
 		const glm::mat4 & modelMatrix,
 		bool pickingMode,
 		bool highlight,
-		vec3 pickingColour
+		vec3 pickingColour,
+		GLuint m_fs_texture
 ) {
 
 	shader.enable();
@@ -590,7 +616,28 @@ static void updateShaderUniforms(
 		location = shader.getUniformLocation("material.shininess");
 		glUniform1f(location, node.material.shininess);
 		CHECK_GL_ERRORS;
-		
+	
+
+		//-- Set Texture values:
+		location = shader.getUniformLocation("hasTexture");
+		glUniform1i(location, node.texture.hasTexture ? 1 : 0);
+		CHECK_GL_ERRORS;
+		if (node.texture.hasTexture) {
+			int width, height, nrChannels;
+			unsigned char *data = stbi_load(node.texture.file.c_str(), &width, &height, &nrChannels, 0);
+			if (data) {
+				glBindTexture(GL_TEXTURE_2D, m_fs_texture);
+				glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+				glGenerateMipmap(GL_TEXTURE_2D);
+				CHECK_GL_ERRORS;
+			}
+			else {
+			        std::cerr << "no image data loaded " << node.texture.file << std::endl;	
+			}
+			glBindTexture(GL_TEXTURE_2D, 0);
+			stbi_image_free(data);
+		} 
+	
 		//-- Set picking values
 		int drawPickingMode = shader.getUniformLocation("pickingMode");
 		glUniform1i(drawPickingMode, pickingMode ? 1 : 0);
@@ -607,6 +654,7 @@ static void updateShaderUniforms(
 		else {
 			glUniform3f(colour, 1.0, 1.0, 0.0);
 		}
+		CHECK_GL_ERRORS;
 	}
 	shader.disable();
 
@@ -631,7 +679,8 @@ void A3::draw() {
 	}
 
 	renderSceneGraph(*m_rootNode);
-
+	
+	std::cout << "Done render graph" << std::endl;
 
 	glDisable( GL_DEPTH_TEST );
 	glDisable(GL_CULL_FACE);
@@ -689,22 +738,26 @@ void A3::renderGraph(const SceneNode &root, glm::mat4 modelMatrix) {
 }
 
 void A3::renderNode(const SceneNode &node, glm::mat4 modelMatrix) {
+	std::cout << "render node" << node.m_name << std::endl;
 	if (node.m_nodeType == NodeType::GeometryNode) {
 		
 		//cout << node.m_name << endl;
 
         	const GeometryNode * geometryNode = static_cast<const GeometryNode *>(&node);
 
-        	updateShaderUniforms(m_shader, *geometryNode, m_view, modelMatrix, (pickingMode == 1), (!do_picking && selected[geometryNode->m_nodeId]), idToColour[geometryNode->m_nodeId]);
+        	updateShaderUniforms(m_shader, *geometryNode, m_view, modelMatrix, (pickingMode == 1), (!do_picking && selected[geometryNode->m_nodeId]), idToColour[geometryNode->m_nodeId], m_fs_texture);
 
-
+		std::cout << "update shader uniforms" << std::endl;
         	//Get the BatchInfo corresponding to the GeometryNode's unique MeshId.
         	BatchInfo batchInfo = m_batchInfoMap[geometryNode->meshId];
 
+		std::cout << "batch info " << batchInfo.startIndex << " " << batchInfo.numIndices << std::endl;
         	//-- Now render the mesh:
         	m_shader.enable();
         	glDrawArrays(GL_TRIANGLES, batchInfo.startIndex, batchInfo.numIndices);
         	m_shader.disable();
+
+		std::cout << "draw arrays" << std::endl;
 	}	
 }
 

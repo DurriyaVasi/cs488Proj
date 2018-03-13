@@ -9,6 +9,7 @@ in VsOutFsIn {
 	vec3 position_ES; // Eye-space position
 	vec3 normal_ES;   // Eye-space normal
 	LightSource light;
+	vec2 textureCoord;
 } fs_in;
 
 
@@ -26,6 +27,9 @@ uniform vec3 ambientIntensity;
 
 uniform int pickingMode;
 uniform vec3 colour;
+
+uniform int hasTexture;
+uniform sampler2D textureData;
 
 vec3 phongModel(vec3 fragPosition, vec3 fragNormal) {
 	LightSource light = fs_in.light;
@@ -59,6 +63,11 @@ void main() {
 		fragColour = vec4(colour, 1.0);
 	}
 	else if (pickingMode == 0) {
-		fragColour = vec4(phongModel(fs_in.position_ES, fs_in.normal_ES), 1.0);
+		if (hasTexture == 1) {
+			fragColour = texture(textureData, fs_in.textureCoord);
+		}
+		else {
+			fragColour = vec4(phongModel(fs_in.position_ES, fs_in.normal_ES), 1.0);
+		}
 	}
 }

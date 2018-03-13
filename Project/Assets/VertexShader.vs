@@ -22,6 +22,7 @@ out VsOutFsIn {
 	vec3 position_ES; // Eye-space position
 	vec3 normal_ES;   // Eye-space normal
 	LightSource light;
+	vec2 textureCoord;
 } vs_out;
 
 
@@ -33,6 +34,8 @@ void main() {
 	vs_out.normal_ES = normalize(NormalMatrix * normal);
 
 	vs_out.light = light;
+
+	vs_out.textureCoord = textureCoord;
 
 	gl_Position = Perspective * ModelView * vec4(position, 1.0);
 }

@@ -48,6 +48,7 @@ protected:
 	void initViewMatrix();
 	void initLightSources();
 	void initSelected(SceneNode *root);
+	void setupTextureParameters();
 
 	void initPerspectiveMatrix();
 	void uploadCommonSceneUniforms();
@@ -68,6 +69,8 @@ protected:
 	glm::mat4 m_view;
 
 	LightSource m_light;
+
+	GLuint m_fs_texture;
 
 	//-- GL resources for mesh geometry data:
 	GLuint m_vao_meshData;

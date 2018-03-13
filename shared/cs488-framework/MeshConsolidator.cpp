@@ -4,6 +4,7 @@ using namespace std;
 
 #include "cs488-framework/Exception.hpp"
 #include "cs488-framework/ObjFileDecoder.hpp"
+#include <iostream>
 
 
 //----------------------------------------------------------------------------------------
@@ -41,7 +42,7 @@ MeshConsolidator::MeshConsolidator(
 	MeshId meshId;
 	vector<vec3> positions;
 	vector<vec3> normals;
-	vector<vec3> uvCoords;
+	vector<vec2> uvCoords;
 	BatchInfo batchInfo;
 	unsigned long indexOffset(0);
 
@@ -55,15 +56,27 @@ MeshConsolidator::MeshConsolidator(
 					"positions.size() != normals.size()\n");
 	    }
 
-	    if ((numIndices != uvCoords.size()) && (!uvCoords.empty())) {
+	    if (uvCoords.empty()) {
+		for(int i = 0; i < numIndices; i++) {
+			uvCoords.push_back(vec2(0, 0));
+		}
+	    }
+
+	    if (numIndices != uvCoords.size()) {
 		    throw Exception("Error within MeshConsolidator: "
-					"positions.size() !=- uvCoords.size()\n");
+					"positions.size() != uvCoords.size()\n");
+	    }
 
 	    batchInfo.startIndex = indexOffset;
 	    batchInfo.numIndices = numIndices;
 
 	    m_batchInfoMap[meshId] = batchInfo;
 
+	    for (int i = 0; i < uvCoords.size(); i++) {
+		cout << uvCoords[i].x << " " << uvCoords[i].y << endl;
+	    }
+		cout << "done object" << endl;
+	
 	    appendVector(m_vertexPositionData, positions);
 	    appendVector(m_vertexNormalData, normals);
 	    appendVector(m_vertexTextureData, uvCoords);
@@ -114,6 +127,6 @@ size_t MeshConsolidator::getNumVertexNormalBytes() const {
 //----------------------------------------------------------------------------------------
 // Returns the total number of bytes of all vertex texture data.
 size_t MeshConsolidator::getNumVertexTextureBytes() const {
-        return m_vertexTextureData.size() * sizeof(vec3);
+        return m_vertexTextureData.size() * sizeof(vec2);
 }
 

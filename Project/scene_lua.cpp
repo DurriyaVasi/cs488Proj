@@ -211,14 +211,16 @@ int gr_texture_cmd(lua_State* L)
   gr_texture_ud* data = (gr_texture_ud*)lua_newuserdata(L, sizeof(gr_texture_ud));
   data->texture = 0;
   
-  luaL_checktype(L, 1, LUA_TBOOLEAN);
+  luaL_checktype(L, 1, LUA_TNUMBER);
 
   luaL_checktype(L, 2, LUA_TSTRING);
 
-  bool hasTexture = luaL_checkboolean(L, 1);
+  bool hasTexture = (luaL_checknumber(L, 1)) == 1;
   const char* file = luaL_checkstring(L, 2);
-  data->hasTexture = hasTexture;
-  data->file = file;
+
+  data->texture = new Texture();
+  data->texture->hasTexture = hasTexture;
+  data->texture->file = file;
 
   luaL_newmetatable(L, "gr.texture");
   lua_setmetatable(L, -2);
@@ -283,11 +285,11 @@ int gr_node_set_texture_cmd(lua_State* L) {
 
   luaL_argcheck(L, self != 0, 1, "Geometry node expected");
 
-  gr_texture_ud* texdata = (gr_material_ud*)luaL_checkudata(L, 2, "gr.texture");
-  luaL_argcheck(L, texData != 0, 2, "Texture expected");
+  gr_texture_ud* texdata = (gr_texture_ud*)luaL_checkudata(L, 2, "gr.texture");
+  luaL_argcheck(L, texdata != 0, 2, "Texture expected");
 
-	Texture * texture = texData->texture;
-	self->texture.hasTexture = textture->hasTexture;
+	Texture * texture = texdata->texture;
+	self->texture.hasTexture = texture->hasTexture;
 	self->texture.file = texture->file;
 
   return 0;
