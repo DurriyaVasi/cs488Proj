@@ -9,5 +9,5 @@ struct Texture {
 
 	bool hasTexture;
 
-	std::string file;
+	std::string & file;
 };

@@ -11,6 +11,8 @@ public:
 
 	Material material;
 
+	Texture texture;
+
 	// Mesh Identifier. This must correspond to an object name of
 	// a loaded .obj file.
 	std::string meshId;
