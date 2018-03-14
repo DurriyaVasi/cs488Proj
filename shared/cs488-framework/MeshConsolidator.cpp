@@ -71,11 +71,6 @@ MeshConsolidator::MeshConsolidator(
 	    batchInfo.numIndices = numIndices;
 
 	    m_batchInfoMap[meshId] = batchInfo;
-
-	    for (int i = 0; i < uvCoords.size(); i++) {
-		cout << uvCoords[i].x << " " << uvCoords[i].y << endl;
-	    }
-		cout << "done object" << endl;
 	
 	    appendVector(m_vertexPositionData, positions);
 	    appendVector(m_vertexNormalData, normals);

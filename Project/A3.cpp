@@ -137,8 +137,6 @@ void A3::init()
 	// all vertex data resources.  This is fine since we already copied this data to
 	// VBOs on the GPU.  We have no use for storing vertex data on the CPU side beyond
 	// this point.
-
-	std::cout << "Done init" << std::endl;
 }
 
 //----------------------------------------------------------------------------------------
@@ -355,8 +353,6 @@ void A3::initLightSources() {
 void A3::initSelected(SceneNode *root) {
 
 	if (root->m_nodeType == NodeType::GeometryNode) {
-
-		//cout << root->m_name << endl;
 
 		selected[root->m_nodeId] = false;
 
@@ -678,8 +674,6 @@ void A3::draw() {
 	}
 
 	renderSceneGraph(*m_rootNode);
-	
-	std::cout << "Done render graph" << std::endl;
 
 	glDisable( GL_DEPTH_TEST );
 	glDisable(GL_CULL_FACE);
@@ -742,26 +736,19 @@ void A3::renderGraph(const SceneNode &root, glm::mat4 modelMatrix) {
 }
 
 void A3::renderNode(const SceneNode &node, glm::mat4 modelMatrix) {
-	std::cout << "render node" << node.m_name << std::endl;
 	if (node.m_nodeType == NodeType::GeometryNode) {
 		
-		//cout << node.m_name << endl;
-
         	const GeometryNode * geometryNode = static_cast<const GeometryNode *>(&node);
 
         	updateShaderUniforms(m_shader, *geometryNode, m_view, modelMatrix, (pickingMode == 1), (!do_picking && selected[geometryNode->m_nodeId]), idToColour[geometryNode->m_nodeId], m_fs_texture);
 
-		std::cout << "update shader uniforms" << std::endl;
         	//Get the BatchInfo corresponding to the GeometryNode's unique MeshId.
         	BatchInfo batchInfo = m_batchInfoMap[geometryNode->meshId];
 
-		std::cout << "batch info " << batchInfo.startIndex << " " << batchInfo.numIndices << std::endl;
         	//-- Now render the mesh:
         	m_shader.enable();
         	glDrawArrays(GL_TRIANGLES, batchInfo.startIndex, batchInfo.numIndices);
         	m_shader.disable();
-
-		std::cout << "draw arrays" << std::endl;
 	}	
 }
 
