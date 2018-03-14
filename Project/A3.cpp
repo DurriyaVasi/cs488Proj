@@ -626,7 +626,6 @@ static void updateShaderUniforms(
 			int width, height, nrChannels;
 			unsigned char *data = stbi_load(node.texture.file.c_str(), &width, &height, &nrChannels, 0);
 			if (data) {
-				glBindTexture(GL_TEXTURE_2D, m_fs_texture);
 				glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
 				glGenerateMipmap(GL_TEXTURE_2D);
 				CHECK_GL_ERRORS;
@@ -634,7 +633,6 @@ static void updateShaderUniforms(
 			else {
 			        std::cerr << "no image data loaded " << node.texture.file << std::endl;	
 			}
-			glBindTexture(GL_TEXTURE_2D, 0);
 			stbi_image_free(data);
 		} 
 	
@@ -696,6 +694,8 @@ void A3::renderSceneGraph(const SceneNode & root) {
 	// Bind the VAO once here, and reuse for all GeometryNode rendering below.
 	glBindVertexArray(m_vao_meshData);
 
+	glBindTexture(GL_TEXTURE_2D, m_fs_texture);
+
 	// This is emphatically *not* how you should be drawing the scene graph in
 	// your final implementation.  This is a non-hierarchical demonstration
 	// in which we assume that there is a list of GeometryNodes living directly
@@ -712,6 +712,9 @@ void A3::renderSceneGraph(const SceneNode & root) {
 	renderGraph(root, mat4());
 
 	glBindVertexArray(0);
+
+	glBindTexture(GL_TEXTURE_2D, 0);	
+
 	CHECK_GL_ERRORS;
 }
 
