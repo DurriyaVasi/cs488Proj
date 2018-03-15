@@ -24,6 +24,7 @@ void ObjFileDecoder::decode(
 	positions.clear();
 	normals.clear();
 	uvCoords.clear();
+	tangents.clear();
 
     ifstream in(objFilePath, std::ios::in);
     in.exceptions(std::ifstream::badbit);
@@ -159,7 +160,7 @@ void ObjFileDecoder::decode(
 		//bitangent1.y = f * (-deltaUV2.x * edge1.y + deltaUV1.x * edge2.y);
 		//bitangent1.z = f * (-deltaUV2.x * edge1.z + deltaUV1.x * edge2.z);
 		//bitangent1 = glm::normalize(bitangent1); 
-
+		
 		tangents.push_back(tangent1);
 		tangents.push_back(tangent1);	
 		tangents.push_back(tangent1);

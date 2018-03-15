@@ -382,7 +382,7 @@ void A3::initViewMatrix() {
 //----------------------------------------------------------------------------------------
 void A3::initLightSources() {
 	// World-space position
-	m_light.position = vec3(0.0f, 0.0f, 5.0f);
+	m_light.position = vec3(2.0f, 2.0f, 5.0f);
 	m_light.rgbIntensity = vec3(0.8f); // White light
 }
 
@@ -442,7 +442,7 @@ void A3::uploadCommonSceneUniforms() {
 		//-- Set background light ambient intensity
 		{
 			location = m_shader.getUniformLocation("ambientIntensity");
-			vec3 ambientIntensity(0.05f);
+			vec3 ambientIntensity(0.005f);
 			glUniform3fv(location, 1, value_ptr(ambientIntensity));
 			CHECK_GL_ERRORS;
 		}

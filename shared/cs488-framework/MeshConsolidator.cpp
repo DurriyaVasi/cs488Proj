@@ -59,7 +59,7 @@ MeshConsolidator::MeshConsolidator(
 
 	    if ((uvCoords.empty() && !tangents.empty()) || (tangents.empty() && !uvCoords.empty())) {
 		    throw Exception("Error within MeshConsolidator: "
-					"only one of uvCoords and tangents is empty\n");
+					"only one of uvCoords and tangents is empty " + objFile + "\n");
 	    }
 
 	    if (uvCoords.empty()) {
