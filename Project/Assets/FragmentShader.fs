@@ -66,7 +66,7 @@ void main() {
 	}
 	else if (pickingMode == 0) {
 		if (hasTexture == 1) {
-			fragColour = texture(textureData, fs_in.textureCoord);
+			fragColour = texture(textureNormals, fs_in.textureCoord);
 		}
 		else {
 			fragColour = vec4(phongModel(fs_in.position_ES, fs_in.normal_ES), 1.0);

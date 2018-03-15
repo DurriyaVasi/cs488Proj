@@ -448,7 +448,10 @@ void A3::uploadCommonSceneUniforms() {
 		}
 
 		{
-			location = glGetUniformLocation("j");	
+			location = glGetUniformLocation("textureData");
+			glUniform1i(location, 0);
+			location = glGetUniformLocation("textureNormals");	
+			glUniform1i(location, 1);
 		}
 	}
 	m_shader.disable();
@@ -810,9 +813,9 @@ void A3::renderNode(const SceneNode &node, glm::mat4 modelMatrix) {
 
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, m_fs_texture);
-		glUniform
+		glActiveTexture(GL_TEXTURE1);
+		glBIndTexture(GL_TEXTURE_2D, m_fs_textureNormals);
         	glDrawArrays(GL_TRIANGLES, batchInfo.startIndex, batchInfo.numIndices);
-        	
 
 		m_shader.disable();
 	}	
