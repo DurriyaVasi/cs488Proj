@@ -193,8 +193,8 @@ void A3::enableVertexShaderInputSlots()
                 glEnableVertexAttribArray(m_textureCoordAttribLocation);
 
 		// Enable the vertex shader attribute location for "tangent" when rendering.
-                m_tangentCoordAttribLocation = m_shader.getAttribLocation("tangent");
-                glEnableVertexAttribArray(m_tangentCoordAttribLocation);
+		m_tangentAttribLocation = m_shader.getAttribLocation("tangent");
+                glEnableVertexAttribArray(m_tangentAttribLocation);
 
 		CHECK_GL_ERRORS;
 	}
@@ -293,7 +293,7 @@ void A3::uploadVertexDataToVbos (
 		glBindBuffer(GL_ARRAY_BUFFER, m_vbo_vertexTangents);
 
 		glBufferData(GL_ARRAY_BUFFER, meshConsolidator.getNumVertexTangentBytes(),
-				meshConsolidator.getVertexTextureDataPtr(0, GL_STATIC_DRAW));
+				meshConsolidator.getVertexTangentDataPtr(), GL_STATIC_DRAW);
 
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
 		CHECK_GL_ERRORS;
@@ -342,7 +342,7 @@ void A3::mapVboDataToVertexShaderInputLocations()
 	// Tell GL how to map data from the vertex buffer "m_vbo_vertexTangents" into the
         // "tangent" vertex attribute location for any bound vertex shader program.
 	glBindBuffer(GL_ARRAY_BUFFER, m_vbo_vertexTangents);
-	glVertexAttribPointer(m_tangetAttribLocation, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
+	glVertexAttribPointer(m_tangentAttribLocation, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
 
 	//-- Unbind target, and restore default values:
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
@@ -448,9 +448,9 @@ void A3::uploadCommonSceneUniforms() {
 		}
 
 		{
-			location = glGetUniformLocation("textureData");
+			location = m_shader.getUniformLocation("textureData");
 			glUniform1i(location, 0);
-			location = glGetUniformLocation("textureNormals");	
+			location = m_shader.getUniformLocation("textureNormals");	
 			glUniform1i(location, 1);
 		}
 	}
@@ -626,7 +626,8 @@ static void updateShaderUniforms(
 		bool pickingMode,
 		bool highlight,
 		vec3 pickingColour,
-		GLuint m_fs_texture
+		GLuint m_fs_texture,
+		GLuint m_fs_textureNormals
 ) {
 
 	shader.enable();
@@ -684,12 +685,12 @@ static void updateShaderUniforms(
 		CHECK_GL_ERRORS;
 		if (node.texture.hasBumps) {
 			int width, height, nrChannels;
-			unsigned char *data = stbi_load(no,texture.normalFile.c_str(), &width, &height, &nrChannels, 0);
+			unsigned char *data = stbi_load(node.texture.normalFile.c_str(), &width, &height, &nrChannels, 0);
 			if (data) {
 				glBindTexture(GL_TEXTURE_2D, m_fs_textureNormals);
 				glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
 				CHECK_GL_ERRORS;
-				gBindTexture(GL_TEXTURE_2D, 0);
+				glBindTexture(GL_TEXTURE_2D, 0);
 			}
 			else {
 				std::cerr << "no image normals data loaded " << node.texture.normalFile << std::endl;
@@ -803,7 +804,7 @@ void A3::renderNode(const SceneNode &node, glm::mat4 modelMatrix) {
 		
         	const GeometryNode * geometryNode = static_cast<const GeometryNode *>(&node);
 
-        	updateShaderUniforms(m_shader, *geometryNode, m_view, modelMatrix, (pickingMode == 1), (!do_picking && selected[geometryNode->m_nodeId]), idToColour[geometryNode->m_nodeId], m_fs_texture);
+        	updateShaderUniforms(m_shader, *geometryNode, m_view, modelMatrix, (pickingMode == 1), (!do_picking && selected[geometryNode->m_nodeId]), idToColour[geometryNode->m_nodeId], m_fs_texture, m_fs_textureNormals);
 
         	//Get the BatchInfo corresponding to the GeometryNode's unique MeshId.
         	BatchInfo batchInfo = m_batchInfoMap[geometryNode->meshId];
@@ -814,7 +815,7 @@ void A3::renderNode(const SceneNode &node, glm::mat4 modelMatrix) {
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, m_fs_texture);
 		glActiveTexture(GL_TEXTURE1);
-		glBIndTexture(GL_TEXTURE_2D, m_fs_textureNormals);
+		glBindTexture(GL_TEXTURE_2D, m_fs_textureNormals);
         	glDrawArrays(GL_TRIANGLES, batchInfo.startIndex, batchInfo.numIndices);
 
 		m_shader.disable();

@@ -71,6 +71,7 @@ protected:
 	LightSource m_light;
 
 	GLuint m_fs_texture;
+	GLuint m_fs_textureNormals;
 
 	//-- GL resources for mesh geometry data:
 	GLuint m_vao_meshData;

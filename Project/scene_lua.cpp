@@ -218,14 +218,14 @@ int gr_texture_cmd(lua_State* L)
 
   bool hasTexture = (luaL_checknumber(L, 1)) == 1;
   const char* file = luaL_checkstring(L, 2);
-  bool hasBumps = (luaL_checkNumber(L, 3)) == 1;
+  bool hasBumps = (luaL_checknumber(L, 3)) == 1;
   const char* normalFile = luaL_checkstring(L, 4);
 
   data->texture = new Texture();
   data->texture->hasTexture = hasTexture;
   data->texture->file = file;
-  data->hasBumps = hasBumps;
-  data->normalFile = normalFile;
+  data->texture->hasBumps = hasBumps;
+  data->texture->normalFile = normalFile;
 
   luaL_newmetatable(L, "gr.texture");
   lua_setmetatable(L, -2);

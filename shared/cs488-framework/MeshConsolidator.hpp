@@ -49,7 +49,7 @@ public:
 
 	size_t getNumVertexTextureBytes() const;
 
-	size_t getVertexTangentBytes() const;
+	size_t getNumVertexTangentBytes() const;
 
 	void getBatchInfoMap(BatchInfoMap & batchInfoMap) const;
 

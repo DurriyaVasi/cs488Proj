@@ -139,14 +139,14 @@ void ObjFileDecoder::decode(
             normals.push_back(temp_normals[normalIndexB]);
             normals.push_back(temp_normals[normalIndexC]);
 
-	    if (numberOfIndexMatched === 3) {
+	    if (numberOfIndexMatches == 3) {
 		vec3 tangent1;
 		vec3 bitangent1;
 	    	
 		vec3 edge1 = temp_positions[positionIndexB] - temp_positions[positionIndexA];
 	    	vec3 edge2 = temp_positions[positionIndexC] - temp_positions[positionIndexA];
 	    	vec2 deltaUV1 = temp_uvCoords[uvCoordIndexB] - temp_uvCoords[uvCoordIndexA];
-		vec3 delatUV2 = temp_uvCoords[uvCoordIndexC] - temp_uvCoords[uvCoordIndexA];
+		vec2 deltaUV2 = temp_uvCoords[uvCoordIndexC] - temp_uvCoords[uvCoordIndexA];
 		
 		float f = 1.0f / (deltaUV1.x * deltaUV2.y - deltaUV2.x * deltaUV1.y);
 		
