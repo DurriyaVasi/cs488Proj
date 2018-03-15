@@ -5,9 +5,15 @@
 struct Texture {
 	Texture()
 			: hasTexture(false),
-			  file(""){ }
+			  file(""),
+			  hasBumps(false),
+			  normalFile(""){ }
 
 	bool hasTexture;
 
 	std::string file;
+
+	bool hasBumps;
+	
+	std::string normalFile;
 };

@@ -43,11 +43,12 @@ MeshConsolidator::MeshConsolidator(
 	vector<vec3> positions;
 	vector<vec3> normals;
 	vector<vec2> uvCoords;
+	vector<vec3> tangents;
 	BatchInfo batchInfo;
 	unsigned long indexOffset(0);
 
     for(const ObjFilePath & objFile : objFileList) {
-	    ObjFileDecoder::decode(objFile.c_str(), meshId, positions, normals, uvCoords);
+	    ObjFileDecoder::decode(objFile.c_str(), meshId, positions, normals, uvCoords, tangents);
 
 	    uint numIndices = positions.size();
 
@@ -56,15 +57,30 @@ MeshConsolidator::MeshConsolidator(
 					"positions.size() != normals.size()\n");
 	    }
 
+	    if ((uvCoords.empty() && !tangents.empty()) || (tangents.empty() && !uvCoords.empty())) {
+		    throw Exception("Error within MeshConsolidator: "
+					"only one of uvCoords and tangents is empty\n");
+	    }
+
 	    if (uvCoords.empty()) {
 		for(int i = 0; i < numIndices; i++) {
 			uvCoords.push_back(vec2(0, 0));
+		}
+	    }
+	    if (tangents.empty()) {
+		for(int i = 0; i < numIndices; i++) {
+			tangents.push_back(vec3(0, 0, 0));
 		}
 	    }
 
 	    if (numIndices != uvCoords.size()) {
 		    throw Exception("Error within MeshConsolidator: "
 					"positions.size() != uvCoords.size()\n");
+	    }
+
+	    if (numIndices != tangents.size()) {
+		    throw Exception("Error within MeshConsolidator: "
+					"positions.size() != tangents.size()\n");
 	    }
 
 	    batchInfo.startIndex = indexOffset;
@@ -75,6 +91,7 @@ MeshConsolidator::MeshConsolidator(
 	    appendVector(m_vertexPositionData, positions);
 	    appendVector(m_vertexNormalData, normals);
 	    appendVector(m_vertexTextureData, uvCoords);
+	    appendVector(m_vertexTangentData, tangents);
 
 	    indexOffset += numIndices;
     }
@@ -106,6 +123,11 @@ const float * MeshConsolidator::getVertexTextureDataPtr() const {
     return &(m_vertexTextureData[0].x);
 }
 
+//----------------------------------------------------------------------------------------
+// Returns the starting memory location for vertex tangent data.
+const float * MeshConsolidator::getVertexTangentDataPtr() const {
+    return &(m_vertexTangentData[0].x);
+}
 
 //----------------------------------------------------------------------------------------
 // Returns the total number of bytes of all vertex position data.
@@ -123,5 +145,11 @@ size_t MeshConsolidator::getNumVertexNormalBytes() const {
 // Returns the total number of bytes of all vertex texture data.
 size_t MeshConsolidator::getNumVertexTextureBytes() const {
         return m_vertexTextureData.size() * sizeof(vec2);
+}
+
+//----------------------------------------------------------------------------------------
+// Returns the total number of bytes of all vertex normal data.
+size_t MeshConsolidator::getNumVertexTangentBytes() const {
+        return m_vertexTangentData.size() * sizeof(vec3);
 }
 

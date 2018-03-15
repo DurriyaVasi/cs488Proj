@@ -16,7 +16,8 @@ void ObjFileDecoder::decode(
 		std::string & objectName,
         std::vector<vec3> & positions,
         std::vector<vec3> & normals,
-        std::vector<vec2> & uvCoords
+        std::vector<vec2> & uvCoords,
+	std::vector<vec3> & tangents
 ) {
 
 	// Empty containers, and start fresh before inserting data from .obj file
@@ -137,6 +138,35 @@ void ObjFileDecoder::decode(
             normals.push_back(temp_normals[normalIndexA]);
             normals.push_back(temp_normals[normalIndexB]);
             normals.push_back(temp_normals[normalIndexC]);
+
+	    if (numberOfIndexMatched === 3) {
+		vec3 tangent1;
+		vec3 bitangent1;
+	    	
+		vec3 edge1 = temp_positions[positionIndexB] - temp_positions[positionIndexA];
+	    	vec3 edge2 = temp_positions[positionIndexC] - temp_positions[positionIndexA];
+	    	vec2 deltaUV1 = temp_uvCoords[uvCoordIndexB] - temp_uvCoords[uvCoordIndexA];
+		vec3 delatUV2 = temp_uvCoords[uvCoordIndexC] - temp_uvCoords[uvCoordIndexA];
+		
+		float f = 1.0f / (deltaUV1.x * deltaUV2.y - deltaUV2.x * deltaUV1.y);
+		
+		tangent1.x = f * (deltaUV2.y * edge1.x - deltaUV1.y * edge2.x);
+		tangent1.y = f * (deltaUV2.y * edge1.y - deltaUV1.y * edge2.y);
+		tangent1.z = f * (deltaUV2.y * edge1.z - deltaUV1.y * edge2.z);
+		tangent1 = glm::normalize(tangent1);
+
+		//bitangent1.x = f * (-deltaUV2.x * edge1.x + deltaUV1.x * edge2.x);
+		//bitangent1.y = f * (-deltaUV2.x * edge1.y + deltaUV1.x * edge2.y);
+		//bitangent1.z = f * (-deltaUV2.x * edge1.z + deltaUV1.x * edge2.z);
+		//bitangent1 = glm::normalize(bitangent1); 
+
+		tangents.push_back(tangent1);
+		tangents.push_back(tangent1);	
+		tangents.push_back(tangent1);
+		//bitangents.push_back(bitangent1);
+		//bitangents.push_back(bitangent1);
+		//bitangents.push_back(bitangent1); 
+	    } 
         }
     }
 
@@ -160,5 +190,6 @@ void ObjFileDecoder::decode(
         std::vector<vec3> & normals
 ) {
     std::vector<vec2> uvCoords;
-    decode(objFilePath, objectName, positions, normals, uvCoords);
+    std::vector<vec3> tangents;
+    decode(objFilePath, objectName, positions, normals, uvCoords, tangents);
 }

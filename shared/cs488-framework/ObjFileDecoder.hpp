@@ -23,7 +23,8 @@ public:
 			std::string & objectName,
             std::vector<glm::vec3> & positions,
             std::vector<glm::vec3> & normals,
-            std::vector<glm::vec2> & uvCoords
+            std::vector<glm::vec2> & uvCoords,
+	    std::vector<glm::vec3> & tangents
     );
 
 

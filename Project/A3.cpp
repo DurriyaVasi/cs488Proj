@@ -28,11 +28,14 @@ A3::A3(const std::string & luaSceneFile)
 	  m_positionAttribLocation(0),
 	  m_normalAttribLocation(0),
 	  m_textureCoordAttribLocation(0),
+	  m_tangentAttribLocation(0),
 	  m_fs_texture(0),
+	  m_fs_textureNormals(0),
 	  m_vao_meshData(0),
 	  m_vbo_vertexPositions(0),
 	  m_vbo_vertexNormals(0),
 	  m_vbo_vertexTextureCoords(0),
+	  m_vbo_vertexTangents(0),
 	  m_vao_arcCircle(0),
 	  m_vbo_arcCircle(0),
 	  pickingMode(0),
@@ -97,6 +100,7 @@ void A3::init()
 	enableVertexShaderInputSlots();
 
 	glGenTextures(1, &m_fs_texture);
+	glGenTextures(1, &m_fs_textureNormals);
 	setupTextureParameters();
 
 	processLuaSceneFile(m_luaSceneFile);
@@ -188,6 +192,10 @@ void A3::enableVertexShaderInputSlots()
                 m_textureCoordAttribLocation = m_shader.getAttribLocation("textureCoord");
                 glEnableVertexAttribArray(m_textureCoordAttribLocation);
 
+		// Enable the vertex shader attribute location for "tangent" when rendering.
+                m_tangentCoordAttribLocation = m_shader.getAttribLocation("tangent");
+                glEnableVertexAttribArray(m_tangentCoordAttribLocation);
+
 		CHECK_GL_ERRORS;
 	}
 
@@ -219,8 +227,19 @@ void A3::setupTextureParameters() {
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 		CHECK_GL_ERRORS;
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
 		CHECK_GL_ERRORS;
+
+		glBindTexture(GL_TEXTURE_2D, m_fs_textureNormals);
+		CHECK_GL_ERRORS;
+
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+                CHECK_GL_ERRORS;
+                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+                CHECK_GL_ERRORS;
+                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+                CHECK_GL_ERRORS;
+                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+                CHECK_GL_ERRORS;
 	}
 	glBindTexture(GL_TEXTURE_2D, 0);
 }
@@ -268,6 +287,18 @@ void A3::uploadVertexDataToVbos (
 		CHECK_GL_ERRORS;
 	}
 
+	{
+		glGenBuffers(1, &m_vbo_vertexTangents);
+	
+		glBindBuffer(GL_ARRAY_BUFFER, m_vbo_vertexTangents);
+
+		glBufferData(GL_ARRAY_BUFFER, meshConsolidator.getNumVertexTangentBytes(),
+				meshConsolidator.getVertexTextureDataPtr(0, GL_STATIC_DRAW));
+
+		glBindBuffer(GL_ARRAY_BUFFER, 0);
+		CHECK_GL_ERRORS;
+	}
+
 	// Generate VBO to store the trackball circle.
 	{
 		glGenBuffers( 1, &m_vbo_arcCircle );
@@ -307,6 +338,11 @@ void A3::mapVboDataToVertexShaderInputLocations()
         // "textureCoord" vertex attribute location for any bound vertex shader program.
         glBindBuffer(GL_ARRAY_BUFFER, m_vbo_vertexTextureCoords);
         glVertexAttribPointer(m_textureCoordAttribLocation, 2, GL_FLOAT, GL_FALSE, 0, nullptr);
+
+	// Tell GL how to map data from the vertex buffer "m_vbo_vertexTangents" into the
+        // "tangent" vertex attribute location for any bound vertex shader program.
+	glBindBuffer(GL_ARRAY_BUFFER, m_vbo_vertexTangents);
+	glVertexAttribPointer(m_tangetAttribLocation, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
 
 	//-- Unbind target, and restore default values:
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
@@ -409,6 +445,10 @@ void A3::uploadCommonSceneUniforms() {
 			vec3 ambientIntensity(0.05f);
 			glUniform3fv(location, 1, value_ptr(ambientIntensity));
 			CHECK_GL_ERRORS;
+		}
+
+		{
+			location = glGetUniformLocation("j");	
 		}
 	}
 	m_shader.disable();
@@ -623,14 +663,34 @@ static void updateShaderUniforms(
 			int width, height, nrChannels;
 			unsigned char *data = stbi_load(node.texture.file.c_str(), &width, &height, &nrChannels, 0);
 			if (data) {
+				glBindTexture(GL_TEXTURE_2D, m_fs_texture);
 				glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
 				glGenerateMipmap(GL_TEXTURE_2D);
 				CHECK_GL_ERRORS;
+				glBindTexture(GL_TEXTURE_2D, 0);
 			}
 			else {
 			        std::cerr << "no image data loaded " << node.texture.file << std::endl;	
 			}
 			stbi_image_free(data);
+		}
+
+		//--Set Texture normal values:
+		location = shader.getUniformLocation("hasBumps");
+		glUniform1i(location, node.texture.hasBumps ? 1 : 0);
+		CHECK_GL_ERRORS;
+		if (node.texture.hasBumps) {
+			int width, height, nrChannels;
+			unsigned char *data = stbi_load(no,texture.normalFile.c_str(), &width, &height, &nrChannels, 0);
+			if (data) {
+				glBindTexture(GL_TEXTURE_2D, m_fs_textureNormals);
+				glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+				CHECK_GL_ERRORS;
+				gBindTexture(GL_TEXTURE_2D, 0);
+			}
+			else {
+				std::cerr << "no image normals data loaded " << node.texture.normalFile << std::endl;
+			}
 		} 
 	
 		//-- Set picking values
@@ -689,7 +749,7 @@ void A3::renderSceneGraph(const SceneNode & root) {
 	// Bind the VAO once here, and reuse for all GeometryNode rendering below.
 	glBindVertexArray(m_vao_meshData);
 
-	glBindTexture(GL_TEXTURE_2D, m_fs_texture);
+	//glBindTexture(GL_TEXTURE_2D, m_fs_texture);
 
 	// This is emphatically *not* how you should be drawing the scene graph in
 	// your final implementation.  This is a non-hierarchical demonstration
@@ -708,7 +768,7 @@ void A3::renderSceneGraph(const SceneNode & root) {
 
 	glBindVertexArray(0);
 
-	glBindTexture(GL_TEXTURE_2D, 0);	
+	//glBindTexture(GL_TEXTURE_2D, 0);	
 
 	CHECK_GL_ERRORS;
 }
@@ -747,8 +807,14 @@ void A3::renderNode(const SceneNode &node, glm::mat4 modelMatrix) {
 
         	//-- Now render the mesh:
         	m_shader.enable();
+
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, m_fs_texture);
+		glUniform
         	glDrawArrays(GL_TRIANGLES, batchInfo.startIndex, batchInfo.numIndices);
-        	m_shader.disable();
+        	
+
+		m_shader.disable();
 	}	
 }
 

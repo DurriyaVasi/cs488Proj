@@ -29,7 +29,9 @@ uniform int pickingMode;
 uniform vec3 colour;
 
 uniform int hasTexture;
+uniform int hasBumps;
 uniform sampler2D textureData;
+uniform sampler2D textureNormals;
 
 vec3 phongModel(vec3 fragPosition, vec3 fragNormal) {
 	LightSource light = fs_in.light;
