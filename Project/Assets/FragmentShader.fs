@@ -34,25 +34,19 @@ uniform int hasBumps;
 uniform sampler2D textureData;
 uniform sampler2D textureNormals;
 
-vec3 phongModel(vec3 fragPosition, vec3 fragNormal) {
+vec3 phongModel(vec3 l, vec3 v, vec3 fragNormal, vec3 kd) {
 	LightSource light = fs_in.light;
 
-    // Direction from fragment to light source.
-    vec3 l = normalize(light.position - fragPosition);
+	float n_dot_l = max(dot(fragNormal, l), 0.0);
 
-    // Direction from fragment to viewer (origin - fragPosition).
-    vec3 v = normalize(-fragPosition.xyz);
-
-    float n_dot_l = max(dot(fragNormal, l), 0.0);
-
-	vec3 diffuse;
-	diffuse = material.kd * n_dot_l;
+        vec3 diffuse;
+        diffuse = kd * n_dot_l;
 
     vec3 specular = vec3(0.0);
 
     if (n_dot_l > 0.0) {
-		// Halfway vector.
-		vec3 h = normalize(v + l);
+                // Halfway vector.
+                vec3 h = normalize(v + l);
         float n_dot_h = max(dot(fragNormal, h), 0.0);
 
         specular = material.ks * pow(n_dot_h, material.shininess);
@@ -61,66 +55,27 @@ vec3 phongModel(vec3 fragPosition, vec3 fragNormal) {
     return ambientIntensity + light.rgbIntensity * (diffuse + specular);
 }
 
-vec3 otherPhongModel(vec3 fragPosition, vec3 fragNormal, vec3 kd) {
-	LightSource light = fs_in.light;
-	vec3 l = fs_in.TBN * normalize(light.position - fragPosition);
-	vec3 v = fs_in.TBN * normalize(-fragPosition.xyz);
-	
-	float n_dot_l =max(dot(fragNormal, l), 0.0);
-
-	vec3 diffuse;
-	diffuse = kd * n_dot_l;
-
-	vec3 specular = vec3(0.0);
-
-	if (n_dot_l > 0.0) {
-		vec3 h = normalize(v + l);
-		float n_dot_h =  max(dot(fragNormal, h), 0.0);
-		specular = material.ks * pow(n_dot_h, material.shininess);
-	}
-	
-	return ambientIntensity + light.rgbIntensity * (diffuse + specular);
-}
-
-vec3 anotherPhongModel(vec3 fragPosition, vec3 fragNormal, vec3 kd) {
-        LightSource light = fs_in.light;
-        vec3 l = normalize(light.position - fragPosition);
-	vec3 v = normalize(-fragPosition.xyz);
-        
-        float n_dot_l =max(dot(fragNormal, l), 0.0);
-
-        vec3 diffuse;
-        diffuse = kd * n_dot_l;
-
-        vec3 specular = vec3(0.0);
-
-        if (n_dot_l > 0.0) {
-                vec3 h = normalize(v + l);
-                float n_dot_h =  max(dot(fragNormal, h), 0.0);
-                specular = material.ks * pow(n_dot_h, material.shininess);
-        }
-
-        return ambientIntensity + light.rgbIntensity * (diffuse + specular);
-}
-
-
 void main() {
 	if (pickingMode == 1) {
 		fragColour = vec4(colour, 1.0);
 	}
 	else if (pickingMode == 0) {
+		vec3 l = normalize(fs_in.light.position - fs_in.position_ES);
+		vec3 v = normalize(-fs_in.position_ES.xyz);
 		if (hasTexture == 1 && hasBumps == 0) {
 			vec3 kd = vec3(texture(textureData, fs_in.textureCoord));
-			fragColour = vec4(anotherPhongModel(fs_in.position_ES, fs_in.normal_ES, kd), 1.0);
+			fragColour = vec4(phongModel(l, v, fs_in.normal_ES, kd), 1.0);
 		}
 		else if (hasTexture == 1 && hasBumps == 1) {
 			vec3 normal = vec3(texture(textureNormals, fs_in.textureCoord));
 			normal = normalize(normal * 2.0 - 1.0);
 			vec3 kd = vec3(texture(textureData, fs_in.textureCoord));
-			fragColour = vec4(otherPhongModel(fs_in.position_ES, normal, kd), 1.0);	
+			l = fs_in.TBN * l;
+			v = fs_in.TBN * v;
+			fragColour = vec4(phongModel(l, v, normal, kd), 1.0);	
 		}
 		else {
-			fragColour = vec4(phongModel(fs_in.position_ES, fs_in.normal_ES), 1.0);
+			fragColour = vec4(phongModel(l , v, fs_in.normal_ES, material.kd), 1.0);
 		}
 	}
 }
