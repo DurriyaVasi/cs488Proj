@@ -6,6 +6,7 @@ using namespace std;
 #include "cs488-framework/MathUtils.hpp"
 #include "GeometryNode.hpp"
 #include "JointNode.hpp"
+#include "Scene.hpp"
 
 #include "stb_image.h"
 
@@ -153,10 +154,17 @@ void A3::processLuaSceneFile(const std::string & filename) {
 
 	// This version of the code treats the main program argument
 	// as a straightforward pathname.
-	m_rootNode = std::shared_ptr<SceneNode>(import_lua(filename));
+
+	std::cout << "before import" << std::endl;
+        Scene scene = import_lua(filename);
+	std::cout << "after import" << std::endl;
+
+	m_rootNode = std::shared_ptr<SceneNode>(scene.node);
 	if (!m_rootNode) {
 		std::cerr << "Could not open " << filename << std::endl;
 	}
+	background = scene.background;
+	std::cout << background.faces[0] << std::endl;
 }
 
 //----------------------------------------------------------------------------------------

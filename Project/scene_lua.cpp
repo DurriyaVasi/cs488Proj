@@ -45,7 +45,7 @@
 #include "GeometryNode.hpp"
 
 // Uncomment the following line to enable debugging messages
-//#define GRLUA_ENABLE_DEBUG
+#define GRLUA_ENABLE_DEBUG
 
 #ifdef GRLUA_ENABLE_DEBUG
 #  define GRLUA_DEBUG(x) do { std::cerr << x << std::endl; } while (0)
@@ -82,6 +82,10 @@ struct gr_material_ud {
 
 struct gr_texture_ud {
   Texture* texture;
+};
+
+struct gr_background_ud {
+  Background* background;
 };
 
 // Create a node
@@ -231,6 +235,38 @@ int gr_texture_cmd(lua_State* L)
   lua_setmetatable(L, -2);
 
   return 1; 
+}
+
+//Create a background
+extern "C"
+int gr_background_cmd(lua_State* L) {
+  GRLUA_DEBUG_CALL;
+
+  gr_background_ud* data = (gr_background_ud*)lua_newuserdata(L, sizeof(gr_background_ud));
+  luaL_checktype(L, 1, LUA_TSTRING);
+  luaL_checktype(L, 2, LUA_TSTRING);
+  luaL_checktype(L, 3, LUA_TSTRING);
+  luaL_checktype(L, 4, LUA_TSTRING);
+  luaL_checktype(L, 5, LUA_TSTRING);
+  luaL_checktype(L, 6, LUA_TSTRING);
+
+  const char* face1 luaL_checkstring(L, 1);
+  const char* face2 luaL_checkstring(L, 2);
+  const char* face3 luaL_checkstring(L, 3);
+  const char* face4 luaL_checkstring(L, 4);
+  const char* face5 luaL_checkstring(L, 5);
+  const char* face6 luaL_checkstring(L, 6);
+
+  data->background = new Background();
+  data->background->faces[0] = face1;
+  data->background->faces[1] = face2;
+  data->background->faces[2] = face3;
+  data->background->faces[3] = face4;
+  data->background->faces[4] = face5;
+  data->background->faces[5] = face6;
+
+  luaL_newmetatable(L, "gr.background");
+  lua_setmetatable(L, -2);
 }
 
 // Add a child to a node
@@ -403,6 +439,7 @@ static const luaL_Reg grlib_functions[] = {
   {"mesh", gr_mesh_cmd},
   {"material", gr_material_cmd},
   {"texture", gr_texture_cmd},
+  {"background", gr_background_cmd},
   {0, 0}
 };
 
@@ -430,7 +467,7 @@ static const luaL_Reg grlib_node_methods[] = {
 };
 
 // This function calls the lua interpreter to do the actual importing
-SceneNode* import_lua(const std::string& filename)
+Scene import_lua(const std::string& filename)
 {
   GRLUA_DEBUG("Importing scene from " << filename);
   
@@ -463,20 +500,47 @@ SceneNode* import_lua(const std::string& filename)
   // Now parse the actual scene
   if (luaL_loadfile(L, filename.c_str()) || lua_pcall(L, 0, 1, 0)) {
     std::cerr << "Error loading " << filename << ": " << lua_tostring(L, -1) << std::endl;
-    return 0;
+    return Scene();
   }
 
   GRLUA_DEBUG("Getting back the node");
   
+  /*L_checktype(L, -1, LUA_TTABLE);
+
+  luaL_argcheck(L, luaL_len(L, -1) == 2, 2, "Two-tuple expected");
+
+    double x[3], y[3];
+  for (int i = 1; i <= 3; i++) {
+    lua_rawgeti(L, 2, i);
+    x[i - 1] = luaL_checknumber(L, -1);
+    lua_rawgeti(L, 3, i);
+    y[i - 1] = luaL_checknumber(L, -1);
+    lua_pop(L, 2);
+  }
+
+*/
+
+
   // Pull the returned node off the stack
   gr_node_ud* data = (gr_node_ud*)luaL_checkudata(L, -1, "gr.node");
   if (!data) {
     std::cerr << "Error loading " << filename << ": Must return the root node." << std::endl;
-    return 0;
+    return Scene();
+  }
+
+  GRLUA_DEBUG("Getting back the background");
+
+  // Pull the returned backgrounf off the stack
+  gr_background_ud* backData = (gr_background_ud*)luaL_checkudata(L, -1, "gr.background");
+  if (!backData) {
+     std::cerr << "Error loading " << filename << ": Must return the background." << std::endl;
+    return Scene();
   }
 
   // Store it
   SceneNode* node = data->node;
+
+  Background* background = backData->background;
 
   GRLUA_DEBUG("Closing the interpreter");
   
@@ -484,5 +548,9 @@ SceneNode* import_lua(const std::string& filename)
   lua_close(L);
 
   // And return the node
-  return node;
+  Scene scene;
+  scene.node = node;
+  scene.background = (*background);
+
+  return scene;
 }

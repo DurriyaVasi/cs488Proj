@@ -7,6 +7,7 @@
 
 #include "SceneNode.hpp"
 #include "JointStack.hpp"
+#include "Background.hpp"
 
 #include <glm/glm.hpp>
 #include <memory>
@@ -99,6 +100,8 @@ protected:
 	std::string m_luaSceneFile;
 
 	std::shared_ptr<SceneNode> m_rootNode;
+
+	Background background;
 
 	int pickingMode;
 	bool do_picking;

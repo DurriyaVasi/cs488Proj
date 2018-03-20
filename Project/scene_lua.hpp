@@ -2,6 +2,7 @@
 
 #include <string>
 #include "SceneNode.hpp"
+#include "Scene.hpp"
 
-SceneNode * import_lua(const std::string & filename);
+Scene import_lua(const std::string & filename);
 
