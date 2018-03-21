@@ -10,5 +10,6 @@ uniform mat4 Perspective;
 
 void main() {
 	texCoords = position;
-	gl_Position = Perspective * View * vec4( position, 1.0 );
+	vec4 pos = Perspective * View * vec4( position, 1.0 );
+	gl_Position = pos.xyww;
 }

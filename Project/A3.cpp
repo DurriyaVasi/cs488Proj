@@ -779,12 +779,6 @@ static void updateShaderUniforms(
  */
 void A3::draw() {
 	glEnable( GL_DEPTH_TEST );
-	
-	glDepthMask(GL_FALSE);
-	if (m_background.hasSkybox) {
-                renderSkybox();
-        }
-	glDepthMask(GL_TRUE);
 
 	/*if (hasZBuffer) {
 		glEnable( GL_DEPTH_TEST );
@@ -796,9 +790,13 @@ void A3::draw() {
 	if (hasFrontCull) {
 		glEnable( GL_CULL_FACE );
 		glCullFace( GL_FRONT );
-	}*/
+	}*/	
 
 	renderSceneGraph(*m_rootNode);
+
+	glDepthFunc(GL_LEQUAL);
+	renderSkybox();
+	glDepthFunc(GL_LESS);
 
 	glDisable( GL_DEPTH_TEST );
 	//glDisable(GL_CULL_FACE);
