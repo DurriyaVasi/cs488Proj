@@ -9,7 +9,7 @@
 #include "JointStack.hpp"
 #include "Background.hpp"
 #include "SkyboxData.hpp"
-//#include "TextureHandler.hpp"
+#include "TextureHandler.hpp"
 
 #include <glm/glm.hpp>
 #include <memory>
@@ -114,7 +114,7 @@ protected:
 
 	Background m_background;
 	SkyboxData m_skyboxData;
-	//TextureHandler m_textureHandler;
+	TextureHandler m_textureHandler;
 
 	int pickingMode;
 	bool do_picking;
