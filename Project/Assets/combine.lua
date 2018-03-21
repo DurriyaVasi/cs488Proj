@@ -3,7 +3,7 @@ rootnode = gr.node('root')
 rootnode:scale( 0.5, 0.5, 0.5 )
 rootnode:translate(0.0, 0.0, -1.0)
 
-background = gr.background("starfield_bk.tga", "starfield_dn.tga", "starfield_ft.tga", "starfield_lf.tga", "starfield_rt.tga", "starfield_up.tga");
+background = gr.background("./Assets/starfield_bk.tga", "./Assets/starfield_dn.tga", "./Assets/starfield_ft.tga", "./Assets/starfield_lf.tga", "./Assets/starfield_rt.tga", "./Assets/starfield_up.tga", 1);
 
 red = gr.material({1.0, 0.0, 0.0}, {0.1, 0.1, 0.1}, 10)
 blue = gr.material({0.0, 0.0, 1.0}, {0.1, 0.1, 0.1}, 10)
@@ -34,4 +34,4 @@ ball:translate(0, 0, -5.0)
 ball:set_material(red)
 ball:set_texture(noTexture)
 
-return {rootnode, background}
+return {r=rootnode, b=background}

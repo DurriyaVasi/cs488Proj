@@ -45,7 +45,7 @@
 #include "GeometryNode.hpp"
 
 // Uncomment the following line to enable debugging messages
-#define GRLUA_ENABLE_DEBUG
+//#define GRLUA_ENABLE_DEBUG
 
 #ifdef GRLUA_ENABLE_DEBUG
 #  define GRLUA_DEBUG(x) do { std::cerr << x << std::endl; } while (0)
@@ -249,13 +249,15 @@ int gr_background_cmd(lua_State* L) {
   luaL_checktype(L, 4, LUA_TSTRING);
   luaL_checktype(L, 5, LUA_TSTRING);
   luaL_checktype(L, 6, LUA_TSTRING);
+  luaL_checktype(L, 7, LUA_TNUMBER);
 
-  const char* face1 luaL_checkstring(L, 1);
-  const char* face2 luaL_checkstring(L, 2);
-  const char* face3 luaL_checkstring(L, 3);
-  const char* face4 luaL_checkstring(L, 4);
-  const char* face5 luaL_checkstring(L, 5);
-  const char* face6 luaL_checkstring(L, 6);
+  const char* face1 = luaL_checkstring(L, 1);
+  const char* face2 = luaL_checkstring(L, 2);
+  const char* face3 = luaL_checkstring(L, 3);
+  const char* face4 = luaL_checkstring(L, 4);
+  const char* face5 = luaL_checkstring(L, 5);
+  const char* face6 = luaL_checkstring(L, 6);
+  bool hasSkybox = (luaL_checknumber(L, 7)) == 1;
 
   data->background = new Background();
   data->background->faces[0] = face1;
@@ -264,6 +266,7 @@ int gr_background_cmd(lua_State* L) {
   data->background->faces[3] = face4;
   data->background->faces[4] = face5;
   data->background->faces[5] = face6;
+  data->background->hasSkybox = hasSkybox;
 
   luaL_newmetatable(L, "gr.background");
   lua_setmetatable(L, -2);
@@ -503,34 +506,27 @@ Scene import_lua(const std::string& filename)
     return Scene();
   }
 
-  GRLUA_DEBUG("Getting back the node");
+  GRLUA_DEBUG("checking returned table");
   
-  /*L_checktype(L, -1, LUA_TTABLE);
+  luaL_checktype(L, -1, LUA_TTABLE);
 
-  luaL_argcheck(L, luaL_len(L, -1) == 2, 2, "Two-tuple expected");
+  //luaL_argcheck(L, luaL_len(L, -1) == 2, 2, "Two-tuple expected");
 
-    double x[3], y[3];
-  for (int i = 1; i <= 3; i++) {
-    lua_rawgeti(L, 2, i);
-    x[i - 1] = luaL_checknumber(L, -1);
-    lua_rawgeti(L, 3, i);
-    y[i - 1] = luaL_checknumber(L, -1);
-    lua_pop(L, 2);
-  }
+  GRLUA_DEBUG("Getting back the node");
 
-*/
-
-
-  // Pull the returned node off the stack
+  lua_pushstring(L, "r");
+  lua_gettable(L, -2);
   gr_node_ud* data = (gr_node_ud*)luaL_checkudata(L, -1, "gr.node");
   if (!data) {
     std::cerr << "Error loading " << filename << ": Must return the root node." << std::endl;
     return Scene();
   }
-
+   
   GRLUA_DEBUG("Getting back the background");
 
-  // Pull the returned backgrounf off the stack
+  lua_pop(L, 1);
+  lua_pushstring(L, "b");
+  lua_gettable(L, -2);
   gr_background_ud* backData = (gr_background_ud*)luaL_checkudata(L, -1, "gr.background");
   if (!backData) {
      std::cerr << "Error loading " << filename << ": Must return the background." << std::endl;

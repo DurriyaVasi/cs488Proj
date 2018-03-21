@@ -32,6 +32,7 @@ A3::A3(const std::string & luaSceneFile)
 	  m_tangentAttribLocation(0),
 	  m_fs_texture(0),
 	  m_fs_textureNormals(0),
+	  m_skybox_texture(0),
 	  m_vao_meshData(0),
 	  m_vbo_vertexPositions(0),
 	  m_vbo_vertexNormals(0),
@@ -39,6 +40,11 @@ A3::A3(const std::string & luaSceneFile)
 	  m_vbo_vertexTangents(0),
 	  m_vao_arcCircle(0),
 	  m_vbo_arcCircle(0),
+	  m_vao_skybox(0),
+	  m_vbo_skybox(0),
+	  m_skybox_positionAttribLocation(0),
+	  m_background(Background()),
+	  m_skyboxData(SkyboxData()),
 	  pickingMode(0),
 	  do_picking(false),
 	  leftMousePressed(false),
@@ -98,13 +104,17 @@ void A3::init()
 
 	glGenVertexArrays(1, &m_vao_arcCircle);
 	glGenVertexArrays(1, &m_vao_meshData);
+	glGenVertexArrays(1, &m_vao_skybox);
 	enableVertexShaderInputSlots();
+
+        processLuaSceneFile(m_luaSceneFile);
 
 	glGenTextures(1, &m_fs_texture);
 	glGenTextures(1, &m_fs_textureNormals);
+	glGenTextures(1, &m_skybox_texture);
 	setupTextureParameters();
 
-	processLuaSceneFile(m_luaSceneFile);
+	setupBackgroundTexture();
 
 	// Load and decode all .obj files at once here.  You may add additional .obj files to
 	// this list in order to support rendering additional mesh types.  All vertex
@@ -155,16 +165,13 @@ void A3::processLuaSceneFile(const std::string & filename) {
 	// This version of the code treats the main program argument
 	// as a straightforward pathname.
 
-	std::cout << "before import" << std::endl;
         Scene scene = import_lua(filename);
-	std::cout << "after import" << std::endl;
 
 	m_rootNode = std::shared_ptr<SceneNode>(scene.node);
 	if (!m_rootNode) {
 		std::cerr << "Could not open " << filename << std::endl;
 	}
-	background = scene.background;
-	std::cout << background.faces[0] << std::endl;
+	m_background = scene.background;
 }
 
 //----------------------------------------------------------------------------------------
@@ -179,6 +186,15 @@ void A3::createShaderProgram()
 	m_shader_arcCircle.attachVertexShader( getAssetFilePath("arc_VertexShader.vs").c_str() );
 	m_shader_arcCircle.attachFragmentShader( getAssetFilePath("arc_FragmentShader.fs").c_str() );
 	m_shader_arcCircle.link();
+
+	m_shader_skybox.generateProgramObject();
+	CHECK_GL_ERRORS;
+	m_shader_skybox.attachVertexShader( getAssetFilePath("skybox_VertexShader.vs").c_str() );
+	CHECK_GL_ERRORS;
+	m_shader_skybox.attachFragmentShader( getAssetFilePath("skybox_FragmentShader.fs").c_str() );
+	CHECK_GL_ERRORS;
+	m_shader_skybox.link();
+	CHECK_GL_ERRORS;
 }
 
 //----------------------------------------------------------------------------------------
@@ -219,6 +235,15 @@ void A3::enableVertexShaderInputSlots()
 		CHECK_GL_ERRORS;
 	}
 
+	{
+		glBindVertexArray(m_vao_skybox);
+	
+		m_skybox_positionAttribLocation = m_shader_skybox.getAttribLocation("position");
+		glEnableVertexAttribArray(m_skybox_positionAttribLocation);
+
+		CHECK_GL_ERRORS;
+	}
+
 	// Restore defaults
 	glBindVertexArray(0);
 }
@@ -236,7 +261,10 @@ void A3::setupTextureParameters() {
 		CHECK_GL_ERRORS;
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 		CHECK_GL_ERRORS;
-
+	
+	}
+	
+	{
 		glBindTexture(GL_TEXTURE_2D, m_fs_textureNormals);
 		CHECK_GL_ERRORS;
 
@@ -249,7 +277,49 @@ void A3::setupTextureParameters() {
                 glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
                 CHECK_GL_ERRORS;
 	}
+
 	glBindTexture(GL_TEXTURE_2D, 0);
+}
+
+void A3::setupBackgroundTexture() {
+	if (m_background.hasSkybox) {
+		{
+                	glBindTexture(GL_TEXTURE_CUBE_MAP, m_skybox_texture);
+                	CHECK_GL_ERRORS;
+
+                	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+                	CHECK_GL_ERRORS;
+                	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+                	CHECK_GL_ERRORS;
+                	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+                	CHECK_GL_ERRORS;
+                	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+                	CHECK_GL_ERRORS;
+                	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+                	CHECK_GL_ERRORS;
+        	}
+		{
+			glBindTexture(GL_TEXTURE_CUBE_MAP, m_skybox_texture);
+                        CHECK_GL_ERRORS;
+	
+			int width, height, nrChannels;
+			for (unsigned int i = 0; i < 6; i++) {
+				unsigned char *data = stbi_load(m_background.faces[i].c_str(), &width, &height, &nrChannels,0);
+				if (data) {
+					 glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 
+                     				      0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+					 CHECK_GL_ERRORS;
+					 stbi_image_free(data);
+				}
+				else {
+					std::cerr << "Cubemap texture failed to load at path: " << m_background.faces[i] << std::endl;
+					stbi_image_free(data);
+				}
+			}
+
+		}
+	}
+	glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
 }
 
 //----------------------------------------------------------------------------------------
@@ -307,6 +377,15 @@ void A3::uploadVertexDataToVbos (
 		CHECK_GL_ERRORS;
 	}
 
+	// Generate VBO to store the skybox data
+	{
+		glGenBuffers( 1, &m_vbo_skybox);
+		glBindBuffer( GL_ARRAY_BUFFER, m_vbo_skybox );
+		glBufferData(GL_ARRAY_BUFFER, sizeof(m_skyboxData.vertices), m_skyboxData.vertices, GL_STATIC_DRAW);	
+		glBindBuffer(GL_ARRAY_BUFFER, 0);
+		CHECK_GL_ERRORS;
+	}
+
 	// Generate VBO to store the trackball circle.
 	{
 		glGenBuffers( 1, &m_vbo_arcCircle );
@@ -355,6 +434,23 @@ void A3::mapVboDataToVertexShaderInputLocations()
 	//-- Unbind target, and restore default values:
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindVertexArray(0);
+
+	CHECK_GL_ERRORS;
+	
+	// Bind VAO in order to record the data mapping.
+	glBindVertexArray(m_vao_skybox);
+	
+	CHECK_GL_ERRORS;	
+	// Tell GL how to map data from the vertex buffer "m_vbo_skybox" into the
+        // "position" vertex attribute location for any bound vertex shader program.
+	glBindBuffer(GL_ARRAY_BUFFER, m_vbo_skybox);
+	CHECK_GL_ERRORS;
+	glVertexAttribPointer(m_skybox_positionAttribLocation, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
+	CHECK_GL_ERRORS;
+
+	//-- Unbind target, and restore default values:
+        glBindBuffer(GL_ARRAY_BUFFER, 0);
+        glBindVertexArray(0);	
 
 	CHECK_GL_ERRORS;
 
@@ -437,7 +533,6 @@ void A3::uploadCommonSceneUniforms() {
 		glUniformMatrix4fv(location, 1, GL_FALSE, value_ptr(m_perpsective));
 		CHECK_GL_ERRORS;
 
-
 		//-- Set LightSource uniform for the scene:
 		{
 			location = m_shader.getUniformLocation("light.position");
@@ -463,6 +558,15 @@ void A3::uploadCommonSceneUniforms() {
 		}
 	}
 	m_shader.disable();
+
+	m_shader_skybox.enable();
+	{
+		//-- Set Perpsective matrix uniform for the scene:
+                GLint location = m_shader_skybox.getUniformLocation("Perspective");
+                glUniformMatrix4fv(location, 1, GL_FALSE, value_ptr(m_perpsective));
+                CHECK_GL_ERRORS;
+	}
+	m_shader_skybox.disable();
 }
 
 //----------------------------------------------------------------------------------------
@@ -732,6 +836,11 @@ static void updateShaderUniforms(
  * Called once per frame, after guiLogic().
  */
 void A3::draw() {
+	glDepthMask(GL_FALSE);
+	if (m_background.hasSkybox) {
+                renderSkybox();
+        }
+	glDepthMask(GL_TRUE);
 
 	if (hasZBuffer) {
 		glEnable( GL_DEPTH_TEST );
@@ -830,6 +939,23 @@ void A3::renderNode(const SceneNode &node, glm::mat4 modelMatrix) {
 	}	
 }
 
+
+void A3::renderSkybox() {
+	glBindVertexArray(m_vao_skybox);
+	 glBindTexture(GL_TEXTURE_CUBE_MAP, m_skybox_texture);
+
+	m_shader_skybox.enable();
+	GLint m_location = m_shader_skybox.getUniformLocation( "View" );
+
+	glUniformMatrix4fv( m_location, 1, GL_FALSE, value_ptr(glm::mat4(glm::mat3(m_view))));
+	glDrawArrays(GL_TRIANGLES, 0, 36);
+
+	m_shader_skybox.disable();
+	
+	glBindVertexArray(0);
+	glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
+}	
+
 //----------------------------------------------------------------------------------------
 // Draw the trackball circle.
 void A3::renderArcCircle() {
@@ -851,6 +977,7 @@ void A3::renderArcCircle() {
 	glBindVertexArray(0);
 	CHECK_GL_ERRORS;
 }
+
 
 //----------------------------------------------------------------------------------------
 /*

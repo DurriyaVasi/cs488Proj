@@ -8,6 +8,8 @@
 #include "SceneNode.hpp"
 #include "JointStack.hpp"
 #include "Background.hpp"
+#include "SkyboxData.hpp"
+//#include "TextureHandler.hpp"
 
 #include <glm/glm.hpp>
 #include <memory>
@@ -50,6 +52,7 @@ protected:
 	void initLightSources();
 	void initSelected(SceneNode *root);
 	void setupTextureParameters();
+	void setupBackgroundTexture();
 
 	void initPerspectiveMatrix();
 	void uploadCommonSceneUniforms();
@@ -57,6 +60,7 @@ protected:
 	void renderGraph(const SceneNode &root, glm::mat4 modelMatrix);
 	void renderNode(const SceneNode &node, glm::mat4 modelMatrix);
 	void renderArcCircle();
+	void renderSkybox();
 
 	void makeJointsInit(SceneNode *node);
 	void resetJoints(SceneNode *node);
@@ -73,6 +77,7 @@ protected:
 
 	GLuint m_fs_texture;
 	GLuint m_fs_textureNormals;
+	GLuint m_skybox_texture;
 
 	//-- GL resources for mesh geometry data:
 	GLuint m_vao_meshData;
@@ -92,6 +97,12 @@ protected:
 	GLint m_arc_positionAttribLocation;
 	ShaderProgram m_shader_arcCircle;
 
+	//-- GL resources for skybox
+	ShaderProgram m_shader_skybox;
+	GLuint m_vbo_skybox;
+	GLuint m_vao_skybox;
+	GLint m_skybox_positionAttribLocation;
+
 	// BatchInfoMap is an associative container that maps a unique MeshId to a BatchInfo
 	// object. Each BatchInfo object contains an index offset and the number of indices
 	// required to render the mesh with identifier MeshId.
@@ -101,7 +112,9 @@ protected:
 
 	std::shared_ptr<SceneNode> m_rootNode;
 
-	Background background;
+	Background m_background;
+	SkyboxData m_skyboxData;
+	//TextureHandler m_textureHandler;
 
 	int pickingMode;
 	bool do_picking;
