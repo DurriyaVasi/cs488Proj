@@ -452,7 +452,7 @@ void A3::initPerspectiveMatrix()
 
 //----------------------------------------------------------------------------------------
 void A3::initViewMatrix() {
-	m_view = glm::lookAt(vec3(0.0f, 0.0f, 0.0f), vec3(0.0f, 0.0f, -1.0f),
+	m_view = glm::lookAt(vec3(0.0f, 0.0f, -5.0f), vec3(0.0f, 0.0f, 0.0f),
 			vec3(0.0f, 1.0f, 0.0f));
 }
 
@@ -778,13 +778,15 @@ static void updateShaderUniforms(
  * Called once per frame, after guiLogic().
  */
 void A3::draw() {
+	glEnable( GL_DEPTH_TEST );
+	
 	glDepthMask(GL_FALSE);
 	if (m_background.hasSkybox) {
                 renderSkybox();
         }
 	glDepthMask(GL_TRUE);
 
-	if (hasZBuffer) {
+	/*if (hasZBuffer) {
 		glEnable( GL_DEPTH_TEST );
 	}
 	if (hasBackCull) {
@@ -794,12 +796,12 @@ void A3::draw() {
 	if (hasFrontCull) {
 		glEnable( GL_CULL_FACE );
 		glCullFace( GL_FRONT );
-	}
+	}*/
 
 	renderSceneGraph(*m_rootNode);
 
 	glDisable( GL_DEPTH_TEST );
-	glDisable(GL_CULL_FACE);
+	//glDisable(GL_CULL_FACE);
 
 	if (drawCircle) {
 		renderArcCircle();
@@ -896,17 +898,23 @@ void A3::renderNode(const SceneNode &node, glm::mat4 modelMatrix) {
 void A3::renderSkybox() {
 	glBindVertexArray(m_vao_skybox);
 	 glBindTexture(GL_TEXTURE_CUBE_MAP, m_skybox_texture);
+	CHECK_GL_ERRORS;
 
 	m_shader_skybox.enable();
-	GLint m_location = m_shader_skybox.getUniformLocation( "View" );
+	GLint location = m_shader_skybox.getUniformLocation( "View" );
+	//std::cout << m_view << std::endl;
+	//std::cout << glm::mat4(glm::mat3(m_view)) << std::endl;
+	glUniformMatrix4fv( location, 1, GL_FALSE, value_ptr(glm::mat4(glm::mat3(m_view))));
+	CHECK_GL_ERRORS;
 
-	glUniformMatrix4fv( m_location, 1, GL_FALSE, value_ptr(glm::mat4(glm::mat3(m_view))));
 	glDrawArrays(GL_TRIANGLES, 0, 36);
+	CHECK_GL_ERRORS;
 
 	m_shader_skybox.disable();
 	
 	glBindVertexArray(0);
 	glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
+	CHECK_GL_ERRORS;
 }	
 
 //----------------------------------------------------------------------------------------

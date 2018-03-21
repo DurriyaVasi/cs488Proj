@@ -47,7 +47,7 @@ class SkyboxData {
     -1.0f, -1.0f,  1.0f,
      1.0f, -1.0f,  1.0f
      };
-	for (int i = 0; i < 36; i++) {
+	for (int i = 0; i < (36 * 3); i++) {
 		vertices[i] = otherVertices[i];
 	}
 	}
