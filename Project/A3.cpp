@@ -30,8 +30,6 @@ A3::A3(const std::string & luaSceneFile)
 	  m_normalAttribLocation(0),
 	  m_textureCoordAttribLocation(0),
 	  m_tangentAttribLocation(0),
-	  m_fs_texture(0),
-	  m_fs_textureNormals(0),
 	  m_skybox_texture(0),
 	  m_vao_meshData(0),
 	  m_vbo_vertexPositions(0),
@@ -109,10 +107,7 @@ void A3::init()
 
         processLuaSceneFile(m_luaSceneFile);
 
-	glGenTextures(1, &m_fs_texture);
-	glGenTextures(1, &m_fs_textureNormals);
 	glGenTextures(1, &m_skybox_texture);
-	setupTextureParameters();
 
 	setupBackgroundTexture();
 
@@ -172,6 +167,8 @@ void A3::processLuaSceneFile(const std::string & filename) {
 		std::cerr << "Could not open " << filename << std::endl;
 	}
 	m_background = scene.background;
+
+	createTextures(scene.textureFiles, scene.textureNormalFiles);
 }
 
 //----------------------------------------------------------------------------------------
@@ -248,38 +245,14 @@ void A3::enableVertexShaderInputSlots()
 	glBindVertexArray(0);
 }
 
-void A3::setupTextureParameters() {
-	{
-		glBindTexture(GL_TEXTURE_2D, m_fs_texture);
-		CHECK_GL_ERRORS;
-	
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-		CHECK_GL_ERRORS;
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-		CHECK_GL_ERRORS;
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-		CHECK_GL_ERRORS;
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-		CHECK_GL_ERRORS;
-	
+void A3::createTextures(std::set<string> textureFiles, std::set<string> textureNormalFiles) {
+	for(std::set<string>::iterator it = textureFiles.begin(); it != textureFiles.end(); ++it) {
+		m_textureHandler.addTexture(*it);
 	}
-	
-	{
-		glBindTexture(GL_TEXTURE_2D, m_fs_textureNormals);
-		CHECK_GL_ERRORS;
-
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-                CHECK_GL_ERRORS;
-                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-                CHECK_GL_ERRORS;
-                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-                CHECK_GL_ERRORS;
-                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-                CHECK_GL_ERRORS;
+	for (std::set<string>::iterator it = textureNormalFiles.begin(); it != textureNormalFiles.end(); ++it) {
+		m_textureHandler.addTextureNormal(*it);
 	}
-
-	glBindTexture(GL_TEXTURE_2D, 0);
-}
+} 
 
 void A3::setupBackgroundTexture() {
 	if (m_background.hasSkybox) {
@@ -737,9 +710,7 @@ static void updateShaderUniforms(
 		const glm::mat4 & modelMatrix,
 		bool pickingMode,
 		bool highlight,
-		vec3 pickingColour,
-		GLuint m_fs_texture,
-		GLuint m_fs_textureNormals
+		vec3 pickingColour
 ) {
 
 	shader.enable();
@@ -775,39 +746,10 @@ static void updateShaderUniforms(
 		location = shader.getUniformLocation("hasTexture");
 		glUniform1i(location, node.texture.hasTexture ? 1 : 0);
 		CHECK_GL_ERRORS;
-		if (node.texture.hasTexture) {
-			int width, height, nrChannels;
-			unsigned char *data = stbi_load(node.texture.file.c_str(), &width, &height, &nrChannels, 0);
-			if (data) {
-				glBindTexture(GL_TEXTURE_2D, m_fs_texture);
-				glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
-				glGenerateMipmap(GL_TEXTURE_2D);
-				CHECK_GL_ERRORS;
-				glBindTexture(GL_TEXTURE_2D, 0);
-			}
-			else {
-			        std::cerr << "no image data loaded " << node.texture.file << std::endl;	
-			}
-			stbi_image_free(data);
-		}
 
 		//--Set Texture normal values:
 		location = shader.getUniformLocation("hasBumps");
 		glUniform1i(location, node.texture.hasBumps ? 1 : 0);
-		CHECK_GL_ERRORS;
-		if (node.texture.hasBumps) {
-			int width, height, nrChannels;
-			unsigned char *data = stbi_load(node.texture.normalFile.c_str(), &width, &height, &nrChannels, 0);
-			if (data) {
-				glBindTexture(GL_TEXTURE_2D, m_fs_textureNormals);
-				glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
-				CHECK_GL_ERRORS;
-				glBindTexture(GL_TEXTURE_2D, 0);
-			}
-			else {
-				std::cerr << "no image normals data loaded " << node.texture.normalFile << std::endl;
-			}
-		} 
 	
 		//-- Set picking values
 		int drawPickingMode = shader.getUniformLocation("pickingMode");
@@ -918,10 +860,10 @@ void A3::renderGraph(const SceneNode &root, glm::mat4 modelMatrix) {
 
 void A3::renderNode(const SceneNode &node, glm::mat4 modelMatrix) {
 	if (node.m_nodeType == NodeType::GeometryNode) {
-		
+	
         	const GeometryNode * geometryNode = static_cast<const GeometryNode *>(&node);
 
-        	updateShaderUniforms(m_shader, *geometryNode, m_view, modelMatrix, (pickingMode == 1), (!do_picking && selected[geometryNode->m_nodeId]), idToColour[geometryNode->m_nodeId], m_fs_texture, m_fs_textureNormals);
+        	updateShaderUniforms(m_shader, *geometryNode, m_view, modelMatrix, (pickingMode == 1), (!do_picking && selected[geometryNode->m_nodeId]), idToColour[geometryNode->m_nodeId]);
 
         	//Get the BatchInfo corresponding to the GeometryNode's unique MeshId.
         	BatchInfo batchInfo = m_batchInfoMap[geometryNode->meshId];
@@ -929,11 +871,22 @@ void A3::renderNode(const SceneNode &node, glm::mat4 modelMatrix) {
         	//-- Now render the mesh:
         	m_shader.enable();
 
-		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, m_fs_texture);
-		glActiveTexture(GL_TEXTURE1);
-		glBindTexture(GL_TEXTURE_2D, m_fs_textureNormals);
+		if (geometryNode->texture.hasTexture) { 
+			glActiveTexture(GL_TEXTURE0);
+			CHECK_GL_ERRORS;
+			glBindTexture(GL_TEXTURE_2D, m_textureHandler.getTexture(geometryNode->texture.file));
+			CHECK_GL_ERRORS;
+		}
+		if (geometryNode->texture.hasBumps) {
+			glActiveTexture(GL_TEXTURE1);
+			CHECK_GL_ERRORS;
+			glBindTexture(GL_TEXTURE_2D, m_textureHandler.getTextureNormal(geometryNode->texture.normalFile));
+			CHECK_GL_ERRORS;
+		}
         	glDrawArrays(GL_TRIANGLES, batchInfo.startIndex, batchInfo.numIndices);
+		CHECK_GL_ERRORS;
+		glBindTexture(GL_TEXTURE_2D, 0);
+		CHECK_GL_ERRORS;
 
 		m_shader.disable();
 	}	

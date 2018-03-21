@@ -40,6 +40,7 @@
 #include <cctype>
 #include <cstring>
 #include <cstdio>
+#include <string>
 #include "lua488.hpp"
 #include "JointNode.hpp"
 #include "GeometryNode.hpp"
@@ -87,6 +88,9 @@ struct gr_texture_ud {
 struct gr_background_ud {
   Background* background;
 };
+
+std::set<std::string> textureFiles;
+std::set<std::string> textureNormalFiles;
 
 // Create a node
 extern "C"
@@ -225,6 +229,10 @@ int gr_texture_cmd(lua_State* L)
   bool hasBumps = (luaL_checknumber(L, 3)) == 1;
   const char* normalFile = luaL_checkstring(L, 4);
 
+  if (!hasTexture && hasBumps) {
+	std::cerr << "no texture but bumps " << file << " : " << normalFile << std::endl;
+  }
+
   data->texture = new Texture();
   data->texture->hasTexture = hasTexture;
   data->texture->file = file;
@@ -233,6 +241,13 @@ int gr_texture_cmd(lua_State* L)
 
   luaL_newmetatable(L, "gr.texture");
   lua_setmetatable(L, -2);
+
+  if (hasTexture) {
+	textureFiles.insert(file);
+  }
+  if (hasBumps) {
+	textureNormalFiles.insert(normalFile);
+  }
 
   return 1; 
 }
@@ -547,6 +562,8 @@ Scene import_lua(const std::string& filename)
   Scene scene;
   scene.node = node;
   scene.background = (*background);
+  scene.textureFiles = textureFiles;
+  scene.textureNormalFiles = textureNormalFiles;
 
   return scene;
 }

@@ -16,6 +16,7 @@
 #include <map>
 #include <stack>
 #include <tuple>
+#include <set>
 
 struct LightSource {
 	glm::vec3 position;
@@ -51,8 +52,8 @@ protected:
 	void initViewMatrix();
 	void initLightSources();
 	void initSelected(SceneNode *root);
-	void setupTextureParameters();
 	void setupBackgroundTexture();
+	void createTextures(std::set<string> textureFiles, std::set<string> textureNormalFiles);
 
 	void initPerspectiveMatrix();
 	void uploadCommonSceneUniforms();
@@ -75,8 +76,6 @@ protected:
 
 	LightSource m_light;
 
-	GLuint m_fs_texture;
-	GLuint m_fs_textureNormals;
 	GLuint m_skybox_texture;
 
 	//-- GL resources for mesh geometry data:

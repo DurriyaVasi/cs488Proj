@@ -4,6 +4,7 @@
 #include "cs488-framework/OpenGLImport.hpp"
 #include "cs488-framework/GlErrorCheck.hpp"
 #include "stb_image.h"
+#include <iostream>
 
 using namespace std;
 
