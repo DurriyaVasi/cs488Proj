@@ -20,6 +20,7 @@ struct Material {
     vec3 kd;
     vec3 ks;
     float shininess;
+    float alpha;
 };
 uniform Material material;
 
@@ -75,7 +76,7 @@ void main() {
 			fragColour = vec4(phongModel(l, v, normal, kd), 1.0);	
 		}
 		else {
-			fragColour = vec4(phongModel(l , v, fs_in.normal_ES, material.kd), 1.0);
+			fragColour = vec4(phongModel(l , v, fs_in.normal_ES, material.kd), material.alpha);
 		}
 	}
 }

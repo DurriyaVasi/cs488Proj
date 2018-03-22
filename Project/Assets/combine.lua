@@ -5,10 +5,10 @@ rootnode:translate(0.0, 0.0, -1.0)
 
 background = gr.background("./Assets/starfield_rt.tga", "./Assets/starfield_lf.tga", "./Assets/starfield_up.tga", "./Assets/starfield_dn.tga", "./Assets/starfield_bk.tga", "./Assets/starfield_ft.tga", 1);
 
-red = gr.material({1.0, 0.0, 0.0}, {0.1, 0.1, 0.1}, 10)
-blue = gr.material({0.0, 0.0, 1.0}, {0.1, 0.1, 0.1}, 10)
-green = gr.material({0.0, 1.0, 0.0}, {0.1, 0.1, 0.1}, 10)
-white = gr.material({1.0, 1.0, 1.0}, {0.1, 0.1, 0.1}, 10)
+red = gr.material({1.0, 0.0, 0.0}, {0.1, 0.1, 0.1}, 10, 1.0)
+blue = gr.material({0.0, 0.0, 1.0}, {0.1, 0.1, 0.1}, 10, 0.5)
+green = gr.material({0.0, 1.0, 0.0}, {0.1, 0.1, 0.1}, 10, 1.0)
+white = gr.material({1.0, 1.0, 1.0}, {0.1, 0.1, 0.1}, 10, 1.0)
 
 noTexture = gr.texture(0, '', 0, '')
 brickBumpsTexture = gr.texture(1, './Assets/brickwall.jpg', 1, './Assets/brickwall_normal.jpg')
@@ -33,5 +33,11 @@ rootnode:add_child(ball)
 ball:translate(0, 0, 0.0)
 ball:set_material(red)
 ball:set_texture(noTexture)
+
+ball2 = gr.mesh('sphere', 'ball2')
+rootnode:add_child(ball2)
+ball2:translate(0, -1.0, -2.0)
+ball2:set_material(blue)
+ball2:set_texture(noTexture)
 
 return {r=rootnode, b=background}

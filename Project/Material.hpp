@@ -19,4 +19,6 @@ struct Material {
 	// Material shininess constant.  Larger positive values model surfaces that
 	// are smoother or mirror-like.  Smaller positive values model rougher surfaces.
 	float shininess;
+
+	float alpha;
 };

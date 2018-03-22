@@ -740,7 +740,9 @@ static void updateShaderUniforms(
 		location = shader.getUniformLocation("material.shininess");
 		glUniform1f(location, node.material.shininess);
 		CHECK_GL_ERRORS;
-	
+		location = shader.getUniformLocation("material.alpha");
+		glUniform1f(location, node.material.alpha);
+		CHECK_GL_ERRORS;	
 
 		//-- Set Texture values:
 		location = shader.getUniformLocation("hasTexture");
@@ -779,6 +781,8 @@ static void updateShaderUniforms(
  */
 void A3::draw() {
 	glEnable( GL_DEPTH_TEST );
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	/*if (hasZBuffer) {
 		glEnable( GL_DEPTH_TEST );

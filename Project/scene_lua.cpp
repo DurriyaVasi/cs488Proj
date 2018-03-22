@@ -187,6 +187,8 @@ int gr_material_cmd(lua_State* L)
 
   luaL_checktype(L, 3, LUA_TNUMBER);
 
+  luaL_checktype(L, 4, LUA_TNUMBER);
+
   double kd[3], ks[3];
   for (int i = 1; i <= 3; i++) {
     lua_rawgeti(L, 1, i);
@@ -196,6 +198,7 @@ int gr_material_cmd(lua_State* L)
     lua_pop(L, 2);
   }
   double shininess = luaL_checknumber(L, 3);
+  double alpha = luaL_checknumber(L, 4);
 
 	data->material = new Material();
 	for(int i(0); i < 3; ++i) {
@@ -203,6 +206,7 @@ int gr_material_cmd(lua_State* L)
 		data->material->ks[i] = ks[i];
 	}
 	data->material->shininess = shininess;
+	data->material->alpha = alpha;
 
   luaL_newmetatable(L, "gr.material");
   lua_setmetatable(L, -2);
@@ -328,6 +332,7 @@ int gr_node_set_material_cmd(lua_State* L)
 	self->material.kd = material->kd;
 	self->material.ks = material->ks;
 	self->material.shininess = material->shininess;
+	self->material.alpha = material->alpha;
 
   return 0;
 }
