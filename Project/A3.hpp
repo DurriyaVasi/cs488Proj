@@ -60,7 +60,6 @@ protected:
 	void renderSceneGraph(const SceneNode &node);
 	void renderGraph(const SceneNode &root, glm::mat4 modelMatrix);
 	void renderNode(const SceneNode &node, glm::mat4 modelMatrix);
-	void renderArcCircle();
 	void renderSkybox();
 
 	void makeJointsInit(SceneNode *node);
@@ -126,16 +125,14 @@ protected:
 	SceneNode *rotateNode;
 	glm::mat4 noTranslate;
 	glm::mat4 noRotate;
-	bool hasZBuffer;
-	bool hasBackCull;
-	bool hasFrontCull;
-	bool drawCircle;
 	std::map<unsigned int, bool> selected; 
-	std::stack<glm::vec3> colours;
-	std::map<unsigned int, glm::vec3> idToColour;
-	std::map<std::tuple<float, float, float>, unsigned int> colourToId;
 	std::map<unsigned int, SceneNode*> objectToJoint;
-	JointStack jointStack;
-	JointNode *headSideJoint;
-	unsigned int headId;
+
+	enum Mode {
+		BEFORE_GAME,
+		DURING_GAME,
+		AFTER_GAME	
+	};
+	
+	Mode m_mode;	
 };
