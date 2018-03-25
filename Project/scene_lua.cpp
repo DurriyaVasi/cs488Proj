@@ -563,7 +563,7 @@ Scene import_lua(const std::string& filename)
   lua_gettable(L, -2);
   gr_node_ud* ballData = (gr_node_ud*)luaL_checkudata(L, -1, "gr.node");
   if (!ballData) {
-    std::cerr << "Error loading " << filename << ": Must return the background." << std::endl;
+    std::cerr << "Error loading " << filename << ": Must return the ball." << std::endl;
     return Scene();
   }
 
@@ -572,9 +572,19 @@ Scene import_lua(const std::string& filename)
   lua_pushstring(L, "p");
   lua_gettable(L, -2);
   gr_node_ud* paddleData = (gr_node_ud*)luaL_checkudata(L, -1, "gr.node");
+  if (!paddleData) {
+    std::cerr << "Error loading " << filename << ": Must return the paddle." << std::endl;
+    return Scene();
+  }
+
+
 
   // Store it
   SceneNode* node = data->node;
+
+  SceneNode* ballNode = ballData->node;
+
+  SceneNode* paddleNode = paddleData->node;
 
   Background* background = backData->background;
 
@@ -588,8 +598,8 @@ Scene import_lua(const std::string& filename)
   scene.node = node;
   scene.textureFiles = textureFiles;
   scene.textureNormalFiles = textureNormalFiles;
-  scene.ballNode = ballData->node;
-  scene.paddleNode = paddleData->node;
+  scene.ballNode = ballNode;
+  scene.paddleNode = paddleNode;
   scene.images[0] = Image(*background, Camera(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, -5.0f), glm::vec3(0.0f, 1.0f, 0.0f)), 60.0f);
   scene.images[1] = Image(Background(), Camera(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, -5.0f), glm::vec3(0.0f, 1.0f, 0.0f)), 60.0f);
   scene.images[2] = scene.images[0];
