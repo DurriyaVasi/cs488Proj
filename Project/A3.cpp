@@ -147,9 +147,6 @@ void A3::processLuaSceneFile(const std::string & filename) {
 		m_images[i] = scene.images[i];
 	}
 
-	std::cout << "is sceen ball ndoe null" << (scene.ballNode == NULL) << std::endl;
-	std::cout << "is scene paddle node null" << (scene.paddleNode == NULL) << std::endl;
-
 	m_ball = Ball(scene.ballNode);
 	m_paddle = Paddle(scene.paddleNode);
 
@@ -741,26 +738,19 @@ void A3::draw() {
 	}
 
 	else if (m_mode == DURING_GAME) {
-		std::cout << "renderGame" << std::endl;
 		renderGame();
-		std::cout << "rendered gane" << std::endl;
 	}
 }
 
 void A3::renderGame() {
 	glBindVertexArray(m_vao_game);
-	std::cout << "bind game array" << std::endl;
 	drawPaddle();
-	std::cout << "drew paddle" << std::endl;
 	CollisionType collision = drawBall();
-	std::cout << "drew ball" << std::endl;
 	glBindVertexArray(0);
 	CHECK_GL_ERRORS;
 }
 
 void A3::drawPaddle() {
-	std::cout << "rendering paddle node" << std::endl;
-	std::cout << "is paddle node null " << (m_paddle.m_node == NULL) << " " << true << std::endl; 
 	renderGameNode(*(m_paddle.m_node));
 }
 
@@ -807,19 +797,12 @@ void A3::renderGraph(const SceneNode &root, glm::mat4 modelMatrix) {
 }
 
 void A3::renderGameNode(const SceneNode &node) {
-	std::cout << "rendering game node " << std::endl;
 	if (node.m_nodeType == NodeType::GeometryNode) {
-		std::cout << "is geometry node" << std::endl;
 		const GeometryNode * geometryNode = static_cast<const GeometryNode *>(&node);
-		std::cout << "created geometry node" << std::endl;
 		updateGameShaderUniforms(m_shader_game, *geometryNode,  m_images[m_mode].camera.getViewMatrix());
-		std::cout << "upodated game shader uniforms" << std::endl;
 		BatchInfo batchInfo = m_batchInfoMap[geometryNode->meshId];
-		std::cout << "got batch info" << std::endl;
 		m_shader_game.enable();
-		std::cout << "before draw game node" << std::endl;
 		glDrawArrays(GL_TRIANGLES, batchInfo.startIndex, batchInfo.numIndices);
-		std::cout << "after draw game node" << std::endl;
                 CHECK_GL_ERRORS;
 		m_shader_game.disable();
 	}
@@ -885,11 +868,9 @@ void A3::renderSkybox() {
 }	
 
 void A3::switchMode(Mode newMode) {
-	std::cout << "switchign mode" << std::endl;
 	m_mode = newMode;
 	createPerspectiveMatrix();
 	setupBackgroundTexture();
-	std::cout << "switched mode" << std::endl;
 }
 
 //----------------------------------------------------------------------------------------
