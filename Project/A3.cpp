@@ -728,7 +728,7 @@ void A3::draw() {
 		glEnable(GL_BLEND);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-	//	renderSceneGraph(*m_rootNode);
+		renderSceneGraph(*m_rootNode);
 
 		glDepthFunc(GL_LEQUAL);
 		renderSkybox();

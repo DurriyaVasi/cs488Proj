@@ -590,8 +590,8 @@ Scene import_lua(const std::string& filename)
   scene.textureNormalFiles = textureNormalFiles;
   scene.ballNode = ballData->node;
   scene.paddleNode = paddleData->node;
-  scene.images[0] = Image(*background, Camera(glm::vec3(0, 0, 0), glm::vec3(0, 0, -5), glm::vec3(0, 0, 1)), 60.0f);
-  scene.images[1] = Image(Background(), Camera(glm::vec3(0, 0, 0), glm::vec3(0, 0, -5), glm::vec3(0, 0, 1)), 60.0f);
+  scene.images[0] = Image(*background, Camera(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, -5.0f), glm::vec3(0.0f, 1.0f, 0.0f)), 60.0f);
+  scene.images[1] = Image(Background(), Camera(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, -5.0f), glm::vec3(0.0f, 1.0f, 0.0f)), 60.0f);
   scene.images[2] = scene.images[0];
 	
 
