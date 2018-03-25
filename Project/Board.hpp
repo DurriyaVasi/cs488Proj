@@ -1,3 +1,5 @@
+#pragma once
+
 class Board {
 	public: 
 
@@ -11,5 +13,5 @@ class Board {
 		  lowYBoundary(lowYBoundary),
 		  highXBoundary(highXBoundary),
 		  highYBoundary(highYBoundary) {}
-}
+};
 		

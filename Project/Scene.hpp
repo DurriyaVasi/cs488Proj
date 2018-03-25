@@ -1,17 +1,14 @@
 #pragma once
 
-#include "Background.hpp"
+#include "Image.hpp"
 #include <set>
 #include <string>
 
 struct Scene {
-
-	Scene()
-			: node(NULL),
-			  background(Background()){}
-
 	SceneNode *node;
-	Background background;
 	std::set<std::string> textureFiles;
 	std::set<std::string> textureNormalFiles;
+	Image images[3];
+	SceneNode *ballNode;
+	SceneNode *paddleNode;
 };

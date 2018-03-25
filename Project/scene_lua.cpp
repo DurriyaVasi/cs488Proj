@@ -44,6 +44,10 @@
 #include "lua488.hpp"
 #include "JointNode.hpp"
 #include "GeometryNode.hpp"
+#include "Camera.hpp"
+#include "Image.hpp"
+#include "Ball.hpp"
+#include "Paddle.hpp"
 
 // Uncomment the following line to enable debugging messages
 //#define GRLUA_ENABLE_DEBUG
@@ -553,6 +557,22 @@ Scene import_lua(const std::string& filename)
     return Scene();
   }
 
+  GRLUA_DEBUG("Gettign the ball node");
+  lua_pop(L, 1);
+  lua_pushstring(L, "q");
+  lua_gettable(L, -2);
+  gr_node_ud* ballData = (gr_node_ud*)luaL_checkudata(L, -1, "gr.node");
+  if (!ballData) {
+    std::cerr << "Error loading " << filename << ": Must return the background." << std::endl;
+    return Scene();
+  }
+
+  GRLUA_DEBUG("Getting teh paddle node");
+  lua_pop(L, 1);
+  lua_pushstring(L, "p");
+  lua_gettable(L, -2);
+  gr_node_ud* paddleData = (gr_node_ud*)luaL_checkudata(L, -1, "gr.node");
+
   // Store it
   SceneNode* node = data->node;
 
@@ -566,9 +586,14 @@ Scene import_lua(const std::string& filename)
   // And return the node
   Scene scene;
   scene.node = node;
-  scene.background = (*background);
   scene.textureFiles = textureFiles;
   scene.textureNormalFiles = textureNormalFiles;
+  scene.ballNode = ballData->node;
+  scene.paddleNode = paddleData->node;
+  scene.images[0] = Image(*background, Camera(glm::vec3(0, 0, 0), glm::vec3(0, 0, -5), glm::vec3(0, 0, 1)), 60.0f);
+  scene.images[1] = Image(Background(), Camera(glm::vec3(0, 0, 0), glm::vec3(0, 0, -5), glm::vec3(0, 0, 1)), 60.0f);
+  scene.images[2] = scene.images[0];
+	
 
   return scene;
 }

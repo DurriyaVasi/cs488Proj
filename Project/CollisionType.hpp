@@ -1,6 +1,6 @@
 #pragma  once
 
-enum CollsionType {
+enum class CollisionType {
 	BALL_PADDLE,
 	BALL_BORDER,
 	BALL_FLOOR,

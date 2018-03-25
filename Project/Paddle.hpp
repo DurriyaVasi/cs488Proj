@@ -1,4 +1,7 @@
+#pragma once
 #include <glm/glm.hpp>
+#include "Board.hpp"
+#include "SceneNode.hpp"
 
 class Paddle {
 	
@@ -7,13 +10,27 @@ class Paddle {
         glm::vec3 m_pos;
 	float m_height;
 	float m_width;
+	SceneNode *m_node;
 
-	Paddle(glm::vec3 pos, float height, float width)
+	Paddle() 
+		: m_pos(glm::vec3()),
+		  m_height(0),
+		  m_width(0),
+		  m_node(NULL) {}
+
+	Paddle(glm::vec3 pos, float height, float width, SceneNode *node)
 		: m_pos(pos),
 		  m_height(height),
-		  m_width(width) {}
+		  m_width(width),
+		  m_node(node) {}
+	
+	Paddle(SceneNode *node)
+		: m_pos(glm::vec3(0, 1.0, 0)),
+		  m_height(0.05),
+		  m_width(0.15),
+		  m_node(node) {}
 
-	glm::mat4 move(float amount, Board b) {
+	void move(float amount, Board b) {
 		glm::vec3 newPos = glm::vec3(m_pos.x + amount, m_pos.y, m_pos.z);
 		if ((newPos.x + m_width) > b.highXBoundary) {
 			newPos = glm::vec3(b.highXBoundary - amount, m_pos.y, m_pos.z);
@@ -21,7 +38,8 @@ class Paddle {
 		else if ((newPos.x - m_width) < b.lowXBoundary) {
 			newPos = glm::vec3(b.lowXBoundary + amount, m_pos.y, m_pos.z);
 		}
+		
+		m_node->translate(newPos - m_pos);
 		m_pos = newPos;
-		return glm::translate(glm::mat4(), m_pos);
 	}
-}			
+};			

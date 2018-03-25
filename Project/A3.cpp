@@ -41,8 +41,9 @@ A3::A3(const std::string & luaSceneFile)
 	  m_vao_skybox(0),
 	  m_vbo_skybox(0),
 	  m_skybox_positionAttribLocation(0),
-	  m_background(Background()),
 	  m_skyboxData(SkyboxData()),
+	  m_vao_game(0),
+	  m_game_positionAttribLocation(0),
 	  pickingMode(0),
 	  do_picking(false),
 	  leftMousePressed(false),
@@ -54,7 +55,8 @@ A3::A3(const std::string & luaSceneFile)
 	  rotateNode(NULL),
 	  noTranslate(mat4()),
 	  noRotate(mat4()),
-	  m_mode(BEFORE_GAME)
+	  m_mode(BEFORE_GAME),
+	  m_board(Board(-2, -2, 2, 2))
 {
 }
 
@@ -79,6 +81,7 @@ void A3::init()
 	glGenVertexArrays(1, &m_vao_arcCircle);
 	glGenVertexArrays(1, &m_vao_meshData);
 	glGenVertexArrays(1, &m_vao_skybox);
+	glGenVertexArrays(1, &m_vao_game);
 	enableVertexShaderInputSlots();
 
         processLuaSceneFile(m_luaSceneFile);
@@ -106,10 +109,6 @@ void A3::init()
 
 	mapVboDataToVertexShaderInputLocations();
 
-	initPerspectiveMatrix();
-
-	initViewMatrix();
-
 	initLightSources();
 
 	translateNode = &(*m_rootNode);
@@ -118,6 +117,8 @@ void A3::init()
 	noRotate = m_rootNode->children.front()->trans;
 
 	initSelected(&(*m_rootNode));
+
+	createPerspectiveMatrix();
 
 	// Exiting the current scope calls delete automatically on meshConsolidator freeing
 	// all vertex data resources.  This is fine since we already copied this data to
@@ -142,7 +143,12 @@ void A3::processLuaSceneFile(const std::string & filename) {
 	if (!m_rootNode) {
 		std::cerr << "Could not open " << filename << std::endl;
 	}
-	m_background = scene.background;
+	for (int i = 0; i < 3; i++) {
+		m_images[i] = scene.images[i];
+	}
+
+	m_ball = Ball(scene.ballNode);
+	m_paddle = Paddle(scene.paddleNode);
 
 	createTextures(scene.textureFiles, scene.textureNormalFiles);
 }
@@ -167,6 +173,15 @@ void A3::createShaderProgram()
 	m_shader_skybox.attachFragmentShader( getAssetFilePath("skybox_FragmentShader.fs").c_str() );
 	CHECK_GL_ERRORS;
 	m_shader_skybox.link();
+	CHECK_GL_ERRORS;
+
+	m_shader_game.generateProgramObject();
+	CHECK_GL_ERRORS;
+	m_shader_game.attachVertexShader( getAssetFilePath("game_VertexShader.vs").c_str() );
+	CHECK_GL_ERRORS;
+	m_shader_game.attachFragmentShader( getAssetFilePath("game_FragmentShader.fs" ).c_str());
+	CHECK_GL_ERRORS;
+	m_shader_game.link();
 	CHECK_GL_ERRORS;
 }
 
@@ -217,6 +232,12 @@ void A3::enableVertexShaderInputSlots()
 		CHECK_GL_ERRORS;
 	}
 
+	{
+		glBindVertexArray(m_vao_game);
+		m_game_positionAttribLocation = m_shader_game.getAttribLocation("position");
+		glEnableVertexAttribArray(m_game_positionAttribLocation);
+		CHECK_GL_ERRORS;
+	}
 	// Restore defaults
 	glBindVertexArray(0);
 }
@@ -231,7 +252,7 @@ void A3::createTextures(std::set<string> textureFiles, std::set<string> textureN
 } 
 
 void A3::setupBackgroundTexture() {
-	if (m_background.hasSkybox) {
+	if (m_images[m_mode].background.hasSkybox) {
 		{
                 	glBindTexture(GL_TEXTURE_CUBE_MAP, m_skybox_texture);
                 	CHECK_GL_ERRORS;
@@ -253,7 +274,7 @@ void A3::setupBackgroundTexture() {
 	
 			int width, height, nrChannels;
 			for (unsigned int i = 0; i < 6; i++) {
-				unsigned char *data = stbi_load(m_background.faces[i].c_str(), &width, &height, &nrChannels,0);
+				unsigned char *data = stbi_load(m_images[m_mode].background.faces[i].c_str(), &width, &height, &nrChannels,0);
 				if (data) {
 					 glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 
                      				      0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
@@ -261,13 +282,16 @@ void A3::setupBackgroundTexture() {
 					 stbi_image_free(data);
 				}
 				else {
-					std::cerr << "Cubemap texture failed to load at path: " << m_background.faces[i] << std::endl;
+					std::cerr << "Cubemap texture failed to load at path: " << m_images[m_mode].background.faces[i] << std::endl;
 					stbi_image_free(data);
 				}
 			}
 
 		}
 	}
+	//TODO: add background colour
+	//glClearColor(m_images[m_mode].background.colour);
+	CHECK_GL_ERRORS;
 	glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
 }
 
@@ -411,26 +435,32 @@ void A3::mapVboDataToVertexShaderInputLocations()
 	glBindBuffer(GL_ARRAY_BUFFER, m_vbo_arcCircle);
 	glVertexAttribPointer(m_arc_positionAttribLocation, 2, GL_FLOAT, GL_FALSE, 0, nullptr);
 
+	CHECK_GL_ERRORS;
+
+	glBindVertexArray(m_vao_game);
+        CHECK_GL_ERRORS;
+        glBindBuffer(GL_ARRAY_BUFFER, m_vbo_vertexPositions);
+        CHECK_GL_ERRORS;
+        glVertexAttribPointer(m_game_positionAttribLocation, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
+	CHECK_GL_ERRORS;
+
+
 	//-- Unbind target, and restore default values:
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindVertexArray(0);
 
 	CHECK_GL_ERRORS;
+
 }
 
 //----------------------------------------------------------------------------------------
-void A3::initPerspectiveMatrix()
+void A3::createPerspectiveMatrix()
 {
 	float aspect = ((float)m_windowWidth) / m_windowHeight;
-	m_perpsective = glm::perspective(degreesToRadians(60.0f), aspect, 0.1f, 100.0f);
+	float perspectiveDegrees = m_images[m_mode].perspectiveDegrees;
+	m_perspective = glm::perspective(degreesToRadians(perspectiveDegrees), aspect, 0.1f, 100.0f);
 }
 
-
-//----------------------------------------------------------------------------------------
-void A3::initViewMatrix() {
-	m_view = glm::lookAt(vec3(0.0f, 0.0f, -5.0f), vec3(0.0f, 0.0f, 0.0f),
-			vec3(0.0f, 1.0f, 0.0f));
-}
 
 //----------------------------------------------------------------------------------------
 void A3::initLightSources() {
@@ -462,18 +492,42 @@ void A3::initSelected(SceneNode *root) {
         }
 }
 
+void A3::uploadCommonImageUniforms() {
+	glm::mat4 perspective = m_perspective;
+
+	m_shader.enable();
+	{
+		GLint location = m_shader.getUniformLocation("Perspective");
+                glUniformMatrix4fv(location, 1, GL_FALSE, value_ptr(perspective));
+                CHECK_GL_ERRORS;
+	}
+	m_shader.disable();
+	
+	m_shader_skybox.enable();
+        {
+                //-- Set Perpsective matrix uniform for the scene:
+                GLint location = m_shader_skybox.getUniformLocation("Perspective");
+                glUniformMatrix4fv(location, 1, GL_FALSE, value_ptr(perspective));
+                CHECK_GL_ERRORS;
+        }
+        m_shader_skybox.disable();
+
+	m_shader_game.enable();
+	{
+		GLint location= m_shader_game.getUniformLocation("Perspective");
+		glUniformMatrix4fv(location, 1, GL_FALSE, value_ptr(perspective));
+		CHECK_GL_ERRORS;
+	}
+	m_shader_game.disable();
+}
+
 //----------------------------------------------------------------------------------------
 void A3::uploadCommonSceneUniforms() {
 	m_shader.enable();
 	{
-		//-- Set Perpsective matrix uniform for the scene:
-		GLint location = m_shader.getUniformLocation("Perspective");
-		glUniformMatrix4fv(location, 1, GL_FALSE, value_ptr(m_perpsective));
-		CHECK_GL_ERRORS;
-
 		//-- Set LightSource uniform for the scene:
 		{
-			location = m_shader.getUniformLocation("light.position");
+			GLint location = m_shader.getUniformLocation("light.position");
 			glUniform3fv(location, 1, value_ptr(m_light.position));
 			location = m_shader.getUniformLocation("light.rgbIntensity");
 			glUniform3fv(location, 1, value_ptr(m_light.rgbIntensity));
@@ -482,29 +536,20 @@ void A3::uploadCommonSceneUniforms() {
 
 		//-- Set background light ambient intensity
 		{
-			location = m_shader.getUniformLocation("ambientIntensity");
+			GLint location = m_shader.getUniformLocation("ambientIntensity");
 			vec3 ambientIntensity(0.005f);
 			glUniform3fv(location, 1, value_ptr(ambientIntensity));
 			CHECK_GL_ERRORS;
 		}
 
 		{
-			location = m_shader.getUniformLocation("textureData");
+			GLint location = m_shader.getUniformLocation("textureData");
 			glUniform1i(location, 0);
 			location = m_shader.getUniformLocation("textureNormals");	
 			glUniform1i(location, 1);
 		}
 	}
 	m_shader.disable();
-
-	m_shader_skybox.enable();
-	{
-		//-- Set Perpsective matrix uniform for the scene:
-                GLint location = m_shader_skybox.getUniformLocation("Perspective");
-                glUniformMatrix4fv(location, 1, GL_FALSE, value_ptr(m_perpsective));
-                CHECK_GL_ERRORS;
-	}
-	m_shader_skybox.disable();
 }
 
 //----------------------------------------------------------------------------------------
@@ -514,8 +559,10 @@ void A3::uploadCommonSceneUniforms() {
 void A3::appLogic()
 {
 	// Place per frame, application logic here ...
-
-	uploadCommonSceneUniforms();
+	uploadCommonImageUniforms();
+	if (m_mode == BEFORE_GAME) {
+		uploadCommonSceneUniforms();
+	}
 }
 
 void A3::resetPosition() {
@@ -572,6 +619,26 @@ void A3::guiLogic()
 		ImGui::Text( "Framerate: %.1f FPS", ImGui::GetIO().Framerate );
 
 	ImGui::End();
+}
+
+static void updateGameShaderUniforms(
+	const ShaderProgram & shader,
+	const GeometryNode & node,
+        const glm::mat4 & viewMatrix) {
+	
+	shader.enable();
+	{
+		//-- Set ModelView matrix:
+                GLint location = shader.getUniformLocation("ModelView");
+                mat4 modelView = viewMatrix * node.trans;
+                glUniformMatrix4fv(location, 1, GL_FALSE, value_ptr(modelView));
+                CHECK_GL_ERRORS;
+
+                location = shader.getUniformLocation("colour");
+		glUniform3fv(location, 1, value_ptr(node.material.kd));
+		CHECK_GL_ERRORS;
+	}
+	shader.disable();
 }
 
 //----------------------------------------------------------------------------------------
@@ -646,6 +713,7 @@ static void updateShaderUniforms(
 
 }
 
+
 //----------------------------------------------------------------------------------------
 /*
  * Called once per frame, after guiLogic().
@@ -653,13 +721,14 @@ static void updateShaderUniforms(
 void A3::draw() {
 
 	if (m_mode == BEFORE_GAME) {
+		
 		glEnable( GL_CULL_FACE );
         	glCullFace( GL_BACK );
 		glEnable( GL_DEPTH_TEST );
 		glEnable(GL_BLEND);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-		renderSceneGraph(*m_rootNode);
+	//	renderSceneGraph(*m_rootNode);
 
 		glDepthFunc(GL_LEQUAL);
 		renderSkybox();
@@ -667,6 +736,28 @@ void A3::draw() {
 
 		glDisable( GL_DEPTH_TEST );
 	}
+
+	else if (m_mode == DURING_GAME) {
+		renderGame();
+	}
+}
+
+void A3::renderGame() {
+	glBindVertexArray(m_vao_game);
+	drawPaddle();
+	CollisionType collision = drawBall();
+	glBindVertexArray(0);
+	CHECK_GL_ERRORS;
+}
+
+void A3::drawPaddle() {
+	renderGameNode(*(m_paddle.m_node));
+}
+
+CollisionType A3::drawBall() {
+	CollisionType collision = m_ball.move(m_paddle, m_board);
+	renderGameNode(*(m_ball.m_node));
+	return collision;	
 }
 
 //----------------------------------------------------------------------------------------
@@ -704,12 +795,28 @@ void A3::renderGraph(const SceneNode &root, glm::mat4 modelMatrix) {
         }
 }
 
-void A3::renderNode(const SceneNode &node, glm::mat4 modelMatrix) {
+void A3::renderGameNode(const SceneNode &node) {
+	if (node.m_nodeType == NodeType::GeometryNode) {
+		const GeometryNode * geometryNode = static_cast<const GeometryNode *>(&node);
+		updateGameShaderUniforms(m_shader_game, *geometryNode,  m_images[m_mode].camera.getViewMatrix());
+		BatchInfo batchInfo = m_batchInfoMap[geometryNode->meshId];
+		m_shader_game.enable();
+		glDrawArrays(GL_TRIANGLES, batchInfo.startIndex, batchInfo.numIndices);
+                CHECK_GL_ERRORS;
+		m_shader_game.disable();
+	}
+	else {
+		std::cerr << "render game node that is not geometry node" << std::endl;
+	}
+}
+
+void A3::renderNode(const SceneNode &node, glm::mat4 modelMatrix) { 
+
 	if (node.m_nodeType == NodeType::GeometryNode) {
 	
         	const GeometryNode * geometryNode = static_cast<const GeometryNode *>(&node);
 
-        	updateShaderUniforms(m_shader, *geometryNode, m_view, modelMatrix, (pickingMode == 1), (!do_picking && selected[geometryNode->m_nodeId]));
+        	updateShaderUniforms(m_shader, *geometryNode, m_images[m_mode].camera.getViewMatrix(), modelMatrix, (pickingMode == 1), (!do_picking && selected[geometryNode->m_nodeId]));
 
         	//Get the BatchInfo corresponding to the GeometryNode's unique MeshId.
         	BatchInfo batchInfo = m_batchInfoMap[geometryNode->meshId];
@@ -746,7 +853,7 @@ void A3::renderSkybox() {
 
 	m_shader_skybox.enable();
 	GLint location = m_shader_skybox.getUniformLocation( "View" );
-	glUniformMatrix4fv( location, 1, GL_FALSE, value_ptr(glm::mat4(glm::mat3(m_view))));
+	glUniformMatrix4fv( location, 1, GL_FALSE, value_ptr(glm::mat4(glm::mat3(m_images[m_mode].camera.getViewMatrix()))));
 	CHECK_GL_ERRORS;
 
 	glDrawArrays(GL_TRIANGLES, 0, 36);
@@ -759,7 +866,11 @@ void A3::renderSkybox() {
 	CHECK_GL_ERRORS;
 }	
 
-
+void A3::switchMode(Mode newMode) {
+	m_mode = newMode;
+	createPerspectiveMatrix();
+	setupBackgroundTexture();
+}
 
 //----------------------------------------------------------------------------------------
 /*
@@ -921,7 +1032,7 @@ bool A3::windowResizeEvent (
 		int height
 ) {
 	bool eventHandled(false);
-	initPerspectiveMatrix();
+	createPerspectiveMatrix(); // fix this
 	return eventHandled;
 }
 
@@ -938,8 +1049,20 @@ bool A3::keyInputEvent (
 
 	if( action == GLFW_PRESS ) {
 		if( key == GLFW_KEY_M ) {
-			show_gui = !show_gui;
-			eventHandled = true;
+			switch(m_mode) {
+				case BEFORE_GAME:
+					this->switchMode(DURING_GAME);
+					break;
+				case DURING_GAME:
+					this->switchMode(AFTER_GAME);
+					break;
+				case AFTER_GAME:
+					this->switchMode(BEFORE_GAME);
+					break;
+				deafult:
+					std::cerr << "invalid mode" << std::endl;
+			}
+			eventHandled = true;	
 		}
 		if (key == GLFW_KEY_I) {
 			resetPosition();

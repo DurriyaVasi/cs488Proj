@@ -40,4 +40,15 @@ ball2:translate(0, -1.0, -2.0)
 ball2:set_material(blue)
 ball2:set_texture(noTexture)
 
-return {r=rootnode, b=background}
+ballRoot = gr.mesh('sphere', 'ballRoot')
+ballRoot:scale( 0.1, 0.1, 0.1)
+ballRoot:set_texture(noTexture)
+ballRoot:set_material(red)
+
+paddleRoot = gr.mesh('cube', 'paddleRoot')
+paddleRoot:scale(0.3, 0.1, 0.1)
+paddleRoot:set_texture(noTexture)
+paddleRoot:set_material(blue)
+
+
+return {r=rootnode, b=background, q=ballRoot, p=paddleRoot}

@@ -10,6 +10,12 @@
 #include "Background.hpp"
 #include "SkyboxData.hpp"
 #include "TextureHandler.hpp"
+#include "Ball.hpp"
+#include "Paddle.hpp"
+#include "Image.hpp"
+#include "Board.hpp"
+#include "Camera.hpp"
+#include "CollisionType.hpp"
 
 #include <glm/glm.hpp>
 #include <memory>
@@ -29,6 +35,13 @@ public:
 	virtual ~A3();
 
 protected:
+
+	enum Mode {
+                BEFORE_GAME,
+                DURING_GAME,
+                AFTER_GAME
+        };
+
 	virtual void init() override;
 	virtual void appLogic() override;
 	virtual void guiLogic() override;
@@ -49,18 +62,24 @@ protected:
 	void enableVertexShaderInputSlots();
 	void uploadVertexDataToVbos(const MeshConsolidator & meshConsolidator);
 	void mapVboDataToVertexShaderInputLocations();
-	void initViewMatrix();
+	glm::mat4 createViewMatrix(Camera camera);
 	void initLightSources();
 	void initSelected(SceneNode *root);
 	void setupBackgroundTexture();
 	void createTextures(std::set<string> textureFiles, std::set<string> textureNormalFiles);
 
-	void initPerspectiveMatrix();
+	void createPerspectiveMatrix();
 	void uploadCommonSceneUniforms();
+	void uploadCommonImageUniforms();
 	void renderSceneGraph(const SceneNode &node);
 	void renderGraph(const SceneNode &root, glm::mat4 modelMatrix);
 	void renderNode(const SceneNode &node, glm::mat4 modelMatrix);
 	void renderSkybox();
+	
+	void renderGame();
+	void drawPaddle();
+	CollisionType drawBall();
+	void renderGameNode(const SceneNode &node);
 
 	void makeJointsInit(SceneNode *node);
 	void resetJoints(SceneNode *node);
@@ -69,9 +88,9 @@ protected:
 	void resetAll();
 	void undo();
 	void redo();
+	void switchMode(Mode newMode);
 
-	glm::mat4 m_perpsective;
-	glm::mat4 m_view;
+	glm::mat4 m_perspective;
 
 	LightSource m_light;
 
@@ -95,6 +114,11 @@ protected:
 	GLint m_arc_positionAttribLocation;
 	ShaderProgram m_shader_arcCircle;
 
+	//-- GL resources for game geometry
+	GLuint m_vao_game;
+	GLint m_game_positionAttribLocation;
+	ShaderProgram m_shader_game;
+
 	//-- GL resources for skybox
 	ShaderProgram m_shader_skybox;
 	GLuint m_vbo_skybox;
@@ -110,7 +134,6 @@ protected:
 
 	std::shared_ptr<SceneNode> m_rootNode;
 
-	Background m_background;
 	SkyboxData m_skyboxData;
 	TextureHandler m_textureHandler;
 
@@ -127,12 +150,12 @@ protected:
 	glm::mat4 noRotate;
 	std::map<unsigned int, bool> selected; 
 	std::map<unsigned int, SceneNode*> objectToJoint;
-
-	enum Mode {
-		BEFORE_GAME,
-		DURING_GAME,
-		AFTER_GAME	
-	};
 	
 	Mode m_mode;	
+
+	Image m_images[3];
+
+	Ball m_ball;
+	Paddle m_paddle;
+	Board m_board;
 };
