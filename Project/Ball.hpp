@@ -1,6 +1,8 @@
 #pragma once
 
 #include <glm/glm.hpp>
+#include <glm/ext.hpp>
+
 #include "CollisionType.hpp"
 #include <cmath>
 #include "Paddle.hpp"
@@ -23,39 +25,54 @@ class Ball {
 	glm::vec3 m_direction;
 	float m_speed;
 	SceneNode *m_node;
+	bool m_noHitXhigh;
+	bool m_noHitXlow;
+	bool m_noHitYhigh;
+
 
 	Ball(glm::vec3 pos, float radius, glm::vec3 direction, float speed, SceneNode *node)
 		: m_pos(pos),
 		  m_radius(radius),
 		  m_direction(direction),
 		  m_speed(speed),
-		  m_node(node) {}
+		  m_node(node),
+		  m_noHitXhigh(false),
+		  m_noHitXlow(false),
+		  m_noHitYhigh(false) {}
 
 	Ball(SceneNode *node)
 		: m_pos(glm::vec3(0, 0, 0)),
 		  m_radius(0.05),
-		  m_direction(glm::vec3(0, 0, 1)),
+		  m_direction(glm::vec3(0, 1, 0)),
 		  m_speed(0.005),
-		  m_node(node) {}
+		  m_node(node), 
+                  m_noHitXhigh(false),
+                  m_noHitXlow(false),
+                  m_noHitYhigh(false) {}
 
 	Ball()
                 : m_pos(glm::vec3()),
                   m_radius(0),
                   m_direction(glm::vec3()),
                   m_speed(0),
-                  m_node(NULL) {}
+                  m_node(NULL), 
+                  m_noHitXhigh(false),
+                  m_noHitXlow(false),
+                  m_noHitYhigh(false) {}
 
 
 	CollisionType move(Paddle p, Board b) {
 		glm::vec3 newPos = m_pos + (m_speed * m_direction);
-		
+		std::cout << glm::to_string(m_pos) << " " << m_speed <<  " " << glm::to_string(m_direction) << " " << glm::to_string(newPos) << std::endl; 		
+
+
 		float newCircleBottom = newPos.y - m_radius;
 		float newCircleLeft = newPos.x - m_radius;
 		float newCircleRight = newPos.x + m_radius;
 		float newCircleTop = newPos.y + m_radius;
 
 		// check if hit bottom or paddles
-		float paddleTop = p.m_pos.y + p.m_height;
+/*		float paddleTop = p.m_pos.y + p.m_height;
 		if (lessThanEqualTo(newCircleBottom, paddleTop)) {
 		
 			// find position where it hits y of board top
@@ -76,24 +93,31 @@ class Ball {
 				m_node->translate(m_speed * m_direction);
 				return CollisionType::BALL_FLOOR;
 			}	
-		}
+		}*/
 		
 		// check if hit boundaries
 		float tX = 0;
 		float tY = 0;
 		bool hitX = false;
 		bool hitY = false;
+		bool hitXhigh = false;
+		bool hitXlow = false;
 		if (this->greaterThanEqualTo(newCircleRight, b.highXBoundary)) {
-			tX = (b.highXBoundary - m_pos.x)/(m_direction.x);
+			tX = (b.highXBoundary - (m_pos.x + m_radius))/(m_direction.x);
 			hitX = true;
+			hitXhigh = true;
+			std::cout << "hit high x boundary" << std::endl;
 		}
 		else if (this->lessThanEqualTo(newCircleLeft, b.lowXBoundary)) {
-			tX = (b.lowXBoundary - m_pos.x)/(m_direction.x);
+			tX = (b.lowXBoundary - (m_pos.x - m_radius))/(m_direction.x);
 			hitX = true;
+			hitXlow = true;
+			std::cout << "hit low x boundary" << std::endl;
 		}
 		if (this->greaterThanEqualTo(newCircleTop, b.highYBoundary)) {
-			tY = (b.highYBoundary - m_pos.y)/(m_direction.y);
+			tY = (b.highYBoundary - (m_pos.y + m_radius))/(m_direction.y);
 			hitY = true;
+			std::cout << "hit high y bounday" << std::endl;
 		}
 		
 		if (hitX && hitY) {
@@ -106,6 +130,9 @@ class Ball {
 			}
 		}
 		if (hitX) {
+			if (hitXhigh && hitXlow) {
+				std::cerr << "hit high adn low x boundary" << std::endl;
+			}	
 			m_node->translate(tX * m_direction);
 			m_pos = m_pos + (tX * m_direction);
 			m_direction = glm::vec3((m_direction.x * -1), m_direction.y, m_direction.z);

@@ -56,7 +56,7 @@ A3::A3(const std::string & luaSceneFile)
 	  noTranslate(mat4()),
 	  noRotate(mat4()),
 	  m_mode(BEFORE_GAME),
-	  m_board(Board(-2, -2, 2, 2))
+	  m_board(Board(-2, 0, 2, 2))
 {
 }
 
@@ -755,10 +755,10 @@ void A3::drawPaddle() {
 }
 
 CollisionType A3::drawBall() {
-	//CollisionType collision = m_ball.move(m_paddle, m_board);
+	CollisionType collision = m_ball.move(m_paddle, m_board);
 	renderGameNode(*(m_ball.m_node));
-	//return collision;
-	return CollisionType::NONE;	
+	return collision;
+	//return CollisionType::NONE;	
 }
 
 //----------------------------------------------------------------------------------------
