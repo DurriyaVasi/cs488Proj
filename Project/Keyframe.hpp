@@ -62,15 +62,11 @@ class KeyFrame {
 		}
 		else {
 			glm::vec3 newPos = m_pos + (m_speed * m_direction);
-			std::cout << m_pos << " " << m_speed << " " <<  m_direction << " " << newPos << std::endl;
 			float tToPositionsTop = ((m_positions.front() - m_pos)/m_direction).x;
-			std::cout << m_positions.front() << " " << ((m_pos - m_positions.front())/m_direction) << " " << std::endl;
 			if (lessThanEqualTo(tToPositionsTop, m_speed)) {
-				std::cout << "pop queue" <<  std::endl;
 				return popQueue();
 			}
 			else {
-				std::cout << "advance" << std::endl;
 				m_pos = newPos;
 				return (m_speed * m_direction);
 			}
