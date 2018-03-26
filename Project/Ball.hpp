@@ -25,9 +25,6 @@ class Ball {
 	glm::vec3 m_direction;
 	float m_speed;
 	SceneNode *m_node;
-	bool m_noHitXhigh;
-	bool m_noHitXlow;
-	bool m_noHitYhigh;
 
 
 	Ball(glm::vec3 pos, float radius, glm::vec3 direction, float speed, SceneNode *node)
@@ -35,30 +32,21 @@ class Ball {
 		  m_radius(radius),
 		  m_direction(direction),
 		  m_speed(speed),
-		  m_node(node),
-		  m_noHitXhigh(false),
-		  m_noHitXlow(false),
-		  m_noHitYhigh(false) {}
+		  m_node(node) {}
 
 	Ball(SceneNode *node)
 		: m_pos(glm::vec3(0, 0, 0)),
 		  m_radius(0.05),
 		  m_direction(glm::vec3(0, 1, 0)),
 		  m_speed(0.005),
-		  m_node(node), 
-                  m_noHitXhigh(false),
-                  m_noHitXlow(false),
-                  m_noHitYhigh(false) {}
+		  m_node(node) {}
 
 	Ball()
                 : m_pos(glm::vec3()),
                   m_radius(0),
                   m_direction(glm::vec3()),
                   m_speed(0),
-                  m_node(NULL), 
-                  m_noHitXhigh(false),
-                  m_noHitXlow(false),
-                  m_noHitYhigh(false) {}
+                  m_node(NULL) {}
 
 
 	CollisionType move(Paddle p, Board b) {
