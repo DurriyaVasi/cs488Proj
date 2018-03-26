@@ -58,7 +58,7 @@ class Ball {
 
 	CollisionType move(Paddle p, Board b) {
 		glm::vec3 newPos = m_pos + (m_speed * m_direction);
-		std::cout << glm::to_string(m_pos) << " " << m_speed <<  " " << glm::to_string(m_direction) << " " << glm::to_string(newPos) << std::endl; 		
+		//std::cout << glm::to_string(m_pos) << " " << m_speed <<  " " << glm::to_string(m_direction) << " " << glm::to_string(newPos) << std::endl; 		
 
 
 		float newCircleBottom = newPos.y - m_radius;
@@ -84,7 +84,7 @@ class Ball {
 				m_node->translate(tToPaddleTop * m_direction);
 				m_pos = posToPaddleTop;
 				float percentage = (posToPaddleTop.x - p.m_pos.x)/(p.m_width);
-				std::cout << "paddle collsion" << glm::to_string(posToPaddleTop) << " " << glm::to_string(p.m_pos) << " " << p.m_width << std::endl;
+				//std::cout << "paddle collsion" << glm::to_string(posToPaddleTop) << " " << glm::to_string(p.m_pos) << " " << p.m_width << std::endl;
 				m_direction = glm::vec3((equalZero(m_direction.x)? percentage: m_direction.x * percentage), (-1 * m_direction.y), m_direction.z);
 				return CollisionType::BALL_PADDLE;
 			}
