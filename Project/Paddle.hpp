@@ -22,21 +22,25 @@ class Paddle {
 		: m_pos(pos),
 		  m_height(height),
 		  m_width(width),
-		  m_node(node) {}
+		  m_node(node) {
+		m_node->translate(m_pos);
+	}
 	
 	Paddle(SceneNode *node)
-		: m_pos(glm::vec3(0, 1.0, 0)),
+		: m_pos(glm::vec3(0, -2, 0)),
 		  m_height(0.05),
-		  m_width(0.15),
-		  m_node(node) {}
+		  m_width(0.25),
+		  m_node(node) {
+		m_node->translate(m_pos);
+	}
 
 	void move(float amount, Board b) {
 		glm::vec3 newPos = glm::vec3(m_pos.x + amount, m_pos.y, m_pos.z);
 		if ((newPos.x + m_width) > b.highXBoundary) {
-			newPos = glm::vec3(b.highXBoundary - amount, m_pos.y, m_pos.z);
+			newPos = glm::vec3(b.highXBoundary - m_width, m_pos.y, m_pos.z);
 		}
 		else if ((newPos.x - m_width) < b.lowXBoundary) {
-			newPos = glm::vec3(b.lowXBoundary + amount, m_pos.y, m_pos.z);
+			newPos = glm::vec3(b.lowXBoundary + m_width, m_pos.y, m_pos.z);
 		}
 		
 		m_node->translate(newPos - m_pos);

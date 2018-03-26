@@ -46,7 +46,7 @@ ballRoot:set_texture(noTexture)
 ballRoot:set_material(red)
 
 paddleRoot = gr.mesh('cube', 'paddleRoot')
-paddleRoot:scale(0.3, 0.1, 0.1)
+paddleRoot:scale(0.5, 0.1, 0.1)
 paddleRoot:set_texture(noTexture)
 paddleRoot:set_material(blue)
 

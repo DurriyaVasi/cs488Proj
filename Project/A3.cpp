@@ -56,7 +56,7 @@ A3::A3(const std::string & luaSceneFile)
 	  noTranslate(mat4()),
 	  noRotate(mat4()),
 	  m_mode(BEFORE_GAME),
-	  m_board(Board(-2, 0, 2, 2))
+	  m_board(Board(-2, -2, 2, 2))
 {
 }
 
@@ -1093,6 +1093,17 @@ bool A3::keyInputEvent (
 			pickingMode = 1;
                         eventHandled = true;
                 }
+		if (key == GLFW_KEY_LEFT) {
+			if (m_mode == DURING_GAME) {
+				m_paddle.move(0.2, m_board);
+			}
+			eventHandled = true;
+		}
+		if (key == GLFW_KEY_RIGHT) {
+			if (m_mode == DURING_GAME) {
+				m_paddle.move(-0.2, m_board);
+			}
+		}
 	}
 	// Fill in with event handling code...
 

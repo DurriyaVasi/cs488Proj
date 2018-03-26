@@ -18,6 +18,9 @@ class Ball {
         	return !(a < b);
 	}
 
+	bool equalZero(float a) {
+		return ((a < 0.001) && (a > -0.001));
+	}
 
 	public:
 	glm::vec3 m_pos;
@@ -32,14 +35,18 @@ class Ball {
 		  m_radius(radius),
 		  m_direction(direction),
 		  m_speed(speed),
-		  m_node(node) {}
+		  m_node(node) {
+		m_node->translate(m_pos);
+	}
 
 	Ball(SceneNode *node)
 		: m_pos(glm::vec3(0, 0, 0)),
 		  m_radius(0.05),
 		  m_direction(glm::vec3(0, 1, 0)),
-		  m_speed(0.005),
-		  m_node(node) {}
+		  m_speed(0.02),
+		  m_node(node) {
+		m_node->translate(m_pos);	
+	}
 
 	Ball()
                 : m_pos(glm::vec3()),
@@ -59,21 +66,26 @@ class Ball {
 		float newCircleRight = newPos.x + m_radius;
 		float newCircleTop = newPos.y + m_radius;
 
+		float circleBottom = m_pos.y - m_radius;
+		float circleLeft = m_pos.x - m_radius;
+		float circleRight = m_pos.x + m_radius;
+		float circleTop = m_pos.y + m_radius;
+
 		// check if hit bottom or paddles
-/*		float paddleTop = p.m_pos.y + p.m_height;
+		float paddleTop = p.m_pos.y + p.m_height;
 		if (lessThanEqualTo(newCircleBottom, paddleTop)) {
 		
 			// find position where it hits y of board top
-			float tToPaddleTop = (paddleTop - (m_pos.y))/(m_direction.y);
+			float tToPaddleTop = (paddleTop - circleBottom)/(m_direction.y);
 			glm::vec3 posToPaddleTop = m_pos + (tToPaddleTop * m_direction); 
 	
-			if ( (this->lessThanEqualTo((posToPaddleTop.x + m_radius), (p.m_pos.x + p.m_width)) &&
-				this->greaterThanEqualTo((posToPaddleTop.x + m_radius), (p.m_pos.x - p.m_width))) ||
-			     (this->lessThanEqualTo((posToPaddleTop.x - m_radius), (p.m_pos.x + p.m_width)) &&
-				this->greaterThanEqualTo((posToPaddleTop.x - m_radius), (p.m_pos.x - p.m_width)))  ) {
+			if (this->lessThanEqualTo((posToPaddleTop.x), (p.m_pos.x + p.m_width)) &&
+				this->greaterThanEqualTo((posToPaddleTop.x), (p.m_pos.x - p.m_width))) {
 				m_node->translate(tToPaddleTop * m_direction);
 				m_pos = posToPaddleTop;
-				m_direction = glm::vec3(m_direction.x, (-1 * m_direction.y), m_direction.z);
+				float percentage = (posToPaddleTop.x - p.m_pos.x)/(p.m_width);
+				std::cout << "paddle collsion" << glm::to_string(posToPaddleTop) << " " << glm::to_string(p.m_pos) << " " << p.m_width << std::endl;
+				m_direction = glm::vec3((equalZero(m_direction.x)? percentage: m_direction.x * percentage), (-1 * m_direction.y), m_direction.z);
 				return CollisionType::BALL_PADDLE;
 			}
 			else {
@@ -81,7 +93,7 @@ class Ball {
 				m_node->translate(m_speed * m_direction);
 				return CollisionType::BALL_FLOOR;
 			}	
-		}*/
+		}
 		
 		// check if hit boundaries
 		float tX = 0;
@@ -91,19 +103,19 @@ class Ball {
 		bool hitXhigh = false;
 		bool hitXlow = false;
 		if (this->greaterThanEqualTo(newCircleRight, b.highXBoundary)) {
-			tX = (b.highXBoundary - (m_pos.x + m_radius))/(m_direction.x);
+			tX = (b.highXBoundary - circleRight)/(m_direction.x);
 			hitX = true;
 			hitXhigh = true;
 			std::cout << "hit high x boundary" << std::endl;
 		}
 		else if (this->lessThanEqualTo(newCircleLeft, b.lowXBoundary)) {
-			tX = (b.lowXBoundary - (m_pos.x - m_radius))/(m_direction.x);
+			tX = (b.lowXBoundary - circleLeft)/(m_direction.x);
 			hitX = true;
 			hitXlow = true;
 			std::cout << "hit low x boundary" << std::endl;
 		}
 		if (this->greaterThanEqualTo(newCircleTop, b.highYBoundary)) {
-			tY = (b.highYBoundary - (m_pos.y + m_radius))/(m_direction.y);
+			tY = (b.highYBoundary - circleTop)/(m_direction.y);
 			hitY = true;
 			std::cout << "hit high y bounday" << std::endl;
 		}
