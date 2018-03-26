@@ -8,7 +8,8 @@ struct Material {
 	Material()
 			: kd(glm::vec3(0.0f)),
 			  ks(glm::vec3(0.0f)),
-			  shininess(0.0f) { }
+			  shininess(0.0f),
+			  alpha(1.0f) { }
 
 	// Diffuse reflection coefficient
 	glm::vec3 kd;

@@ -16,6 +16,7 @@
 #include "Board.hpp"
 #include "Camera.hpp"
 #include "CollisionType.hpp"
+#include "Animator.hpp"
 
 #include <glm/glm.hpp>
 #include <memory>
@@ -75,17 +76,13 @@ protected:
 	void renderGraph(const SceneNode &root, glm::mat4 modelMatrix);
 	void renderNode(const SceneNode &node, glm::mat4 modelMatrix);
 	void renderSkybox();
+	void renderBeforeGame();
 	
 	void renderGame();
 	void drawPaddle();
 	CollisionType drawBall();
 	void renderGameNode(const SceneNode &node);
 
-	void makeJointsInit(SceneNode *node);
-	void resetJoints(SceneNode *node);
-	void resetPosition();
-	void resetOrientation();
-	void resetAll();
 	void undo();
 	void redo();
 	void switchMode(Mode newMode);
@@ -132,8 +129,6 @@ protected:
 
 	std::string m_luaSceneFile;
 
-	std::shared_ptr<SceneNode> m_rootNode;
-
 	SkyboxData m_skyboxData;
 	TextureHandler m_textureHandler;
 
@@ -144,10 +139,6 @@ protected:
 	bool middleMousePressed;
 	double oldX;
 	double oldY;
-	SceneNode *translateNode;
-	SceneNode *rotateNode;
-	glm::mat4 noTranslate;
-	glm::mat4 noRotate;
 	std::map<unsigned int, bool> selected; 
 	std::map<unsigned int, SceneNode*> objectToJoint;
 	
@@ -158,4 +149,5 @@ protected:
 	Ball m_ball;
 	Paddle m_paddle;
 	Board m_board;
+	Animator m_spaceship;
 };

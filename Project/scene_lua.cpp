@@ -41,6 +41,7 @@
 #include <cstring>
 #include <cstdio>
 #include <string>
+#include <queue>
 #include "lua488.hpp"
 #include "JointNode.hpp"
 #include "GeometryNode.hpp"
@@ -594,13 +595,20 @@ Scene import_lua(const std::string& filename)
   lua_close(L);
 
   // And return the node
+  std::queue<glm::vec3> shipPositions;
+  shipPositions.push(glm::vec3(-3, 0, 0));
+  shipPositions.push(glm::vec3(-1.5, 2, 0));
+  shipPositions.push(glm::vec3(1.5, 2, 0));
+  shipPositions.push(glm::vec3(3, 0, 0));
+  KeyFrame kf = KeyFrame(shipPositions, 0.03);
+  Animator spaceship = Animator(node, kf);
   Scene scene;
-  scene.node = node;
+  scene.spaceship = spaceship;
   scene.textureFiles = textureFiles;
   scene.textureNormalFiles = textureNormalFiles;
   scene.ballNode = ballNode;
   scene.paddleNode = paddleNode;
-  scene.images[0] = Image(*background, Camera(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, -5.0f), glm::vec3(0.0f, 1.0f, 0.0f)), 60.0f);
+  scene.images[0] = Image(*background, Camera(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, -10.0f), glm::vec3(0.0f, 1.0f, 0.0f)), 60.0f);
   scene.images[1] = Image(Background(), Camera(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, -5.0f), glm::vec3(0.0f, 1.0f, 0.0f)), 60.0f);
   scene.images[2] = scene.images[0];
 	

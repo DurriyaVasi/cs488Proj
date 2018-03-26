@@ -1,11 +1,12 @@
 #pragma once
 
 #include "Image.hpp"
+#include "Animator.hpp"
 #include <set>
 #include <string>
 
 struct Scene {
-	SceneNode *node;
+	Animator spaceship;
 	std::set<std::string> textureFiles;
 	std::set<std::string> textureNormalFiles;
 	Image images[3];

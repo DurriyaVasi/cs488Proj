@@ -51,10 +51,6 @@ A3::A3(const std::string & luaSceneFile)
 	  middleMousePressed(false),
 	  oldX(0),
 	  oldY(0),
-	  translateNode(NULL),
-	  rotateNode(NULL),
-	  noTranslate(mat4()),
-	  noRotate(mat4()),
 	  m_mode(BEFORE_GAME),
 	  m_board(Board(-2, -2, 2, 2))
 {
@@ -111,12 +107,7 @@ void A3::init()
 
 	initLightSources();
 
-	translateNode = &(*m_rootNode);
-	rotateNode = m_rootNode->children.front();
-	noTranslate = m_rootNode->trans;
-	noRotate = m_rootNode->children.front()->trans;
-
-	initSelected(&(*m_rootNode));
+//	initSelected(&(*m_rootNode));
 
 	createPerspectiveMatrix();
 
@@ -139,14 +130,20 @@ void A3::processLuaSceneFile(const std::string & filename) {
 
         Scene scene = import_lua(filename);
 
-	m_rootNode = std::shared_ptr<SceneNode>(scene.node);
-	if (!m_rootNode) {
-		std::cerr << "Could not open " << filename << std::endl;
+	if (!scene.spaceship.m_node) {
+		std::cerr << "Could not open spaceship " << filename << std::endl;
+	}
+	if (!scene.ballNode) {
+		std::cerr << "Could not open ballnode " << filename << std::endl;
+	}
+	if (!scene.paddleNode) {	
+		std::cerr << "Could not open paddleNode " << filename << std::endl;
 	}
 	for (int i = 0; i < 3; i++) {
 		m_images[i] = scene.images[i];
 	}
 
+	m_spaceship = scene.spaceship;
 	m_ball = Ball(scene.ballNode);
 	m_paddle = Paddle(scene.paddleNode);
 
@@ -471,7 +468,7 @@ void A3::initLightSources() {
 
 void A3::initSelected(SceneNode *root) {
 
-	if (root->m_nodeType == NodeType::GeometryNode) {
+/*	if (root->m_nodeType == NodeType::GeometryNode) {
 
 		selected[root->m_nodeId] = false;
 	}
@@ -489,7 +486,7 @@ void A3::initSelected(SceneNode *root) {
 	list<SceneNode*> children = root->children;
         for (list<SceneNode*>::iterator it = children.begin(); it != children.end(); ++it) {
         	initSelected(*it);
-        }
+        } */
 }
 
 void A3::uploadCommonImageUniforms() {
@@ -563,35 +560,6 @@ void A3::appLogic()
 	if (m_mode == BEFORE_GAME) {
 		uploadCommonSceneUniforms();
 	}
-}
-
-void A3::resetPosition() {
-	translateNode->set_transform(noTranslate);
-}
-
-void A3::resetOrientation() {
-	rotateNode->set_transform(noRotate);
-}
-
-void A3::makeJointsInit(SceneNode *node) {
-	if (node->m_nodeType == NodeType::JointNode) {
-		JointNode * joint = static_cast<JointNode *>(node);
-		joint->reset();
-	}
-	list<SceneNode*> children = node->children;
-	for (list<SceneNode*>::iterator it = children.begin(); it != children.end(); ++it) {
-		makeJointsInit(*it);
-	}
-}
-
-void A3::resetJoints(SceneNode *node) {
-	makeJointsInit(node);
-}
-
-void A3::resetAll() {
-	resetPosition();
-	resetOrientation();
-	resetJoints(&(*m_rootNode));
 }
 //----------------------------------------------------------------------------------------
 /*
@@ -722,25 +690,34 @@ void A3::draw() {
 
 	if (m_mode == BEFORE_GAME) {
 		
-		glEnable( GL_CULL_FACE );
-        	glCullFace( GL_BACK );
-		glEnable( GL_DEPTH_TEST );
-		glEnable(GL_BLEND);
-		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-		renderSceneGraph(*m_rootNode);
-
-		glDepthFunc(GL_LEQUAL);
-		renderSkybox();
-		glDepthFunc(GL_LESS);
-
-		glDisable( GL_DEPTH_TEST );
+		renderBeforeGame();
 	}
 
 	else if (m_mode == DURING_GAME) {
 		renderGame();
 	}
 }
+
+void A3::renderBeforeGame() {
+		glEnable( GL_CULL_FACE );
+                glCullFace( GL_BACK );
+                glEnable( GL_DEPTH_TEST );
+                glEnable(GL_BLEND);
+                glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+		m_spaceship.move();
+                renderSceneGraph(*(m_spaceship.m_node));
+
+                glDepthFunc(GL_LEQUAL);
+                renderSkybox();
+                glDepthFunc(GL_LESS);
+
+		glDisable( GL_CULL_FACE );
+                glDisable( GL_DEPTH_TEST );
+		glDisable(GL_BLEND);
+}
+
+
 
 void A3::renderGame() {
 	glBindVertexArray(m_vao_game);
@@ -868,6 +845,9 @@ void A3::renderSkybox() {
 }	
 
 void A3::switchMode(Mode newMode) {
+	if (newMode == BEFORE_GAME) {
+		processLuaSceneFile(m_luaSceneFile);
+	}
 	m_mode = newMode;
 	createPerspectiveMatrix();
 	setupBackgroundTexture();
@@ -912,7 +892,7 @@ bool A3::mouseMoveEvent (
 	oldY = yPos;
 	
 	if (!ImGui::IsMouseHoveringAnyWindow()) {
-		if (m_mode == BEFORE_GAME) {
+		/*if (m_mode == BEFORE_GAME) {
 			if (leftMousePressed) {
 				translateNode->translate(vec3(xDiff/500, (-1 * yDiff)/500, 0));
 				eventHandled = true;
@@ -921,7 +901,7 @@ bool A3::mouseMoveEvent (
 				translateNode->translate(vec3(0, 0, yDiff/500));
 				eventHandled = true;
 			}			
-		}
+		}*/
 	}
 
 	return eventHandled;
@@ -1065,22 +1045,6 @@ bool A3::keyInputEvent (
 			}
 			eventHandled = true;	
 		}
-		if (key == GLFW_KEY_I) {
-			resetPosition();
-			eventHandled = true;
-		}
-		if (key == GLFW_KEY_O) {
-			resetOrientation();
-			eventHandled = true;
-		}
-		if (key == GLFW_KEY_N) {
-			resetJoints(&(*m_rootNode));
-                        eventHandled = true;
-                }
-		if (key == GLFW_KEY_A) {
-			resetAll();
-                        eventHandled = true;
-                }
 		if (key == GLFW_KEY_Q) {
 			glfwSetWindowShouldClose(m_window, GL_TRUE);
                         eventHandled = true;
