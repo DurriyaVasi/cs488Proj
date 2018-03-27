@@ -157,6 +157,9 @@ void A3::processLuaSceneFile(const std::string & filename) {
 	if (!scene.box) {
                 std::cerr << "Could not open box node " << filename << std::endl;
         }
+	if (!scene.map) {
+                std::cerr << "Could not open map node " << filename << std::endl;
+        }
 
 	for (int i = 0; i < 3; i++) {
 		m_images[i] = scene.images[i];
@@ -169,6 +172,7 @@ void A3::processLuaSceneFile(const std::string & filename) {
 	m_playAgainButton = scene.playAgainButton;
 	m_gameOverText = scene.gameOverText;
 	m_box = scene.box;
+	m_map = scene.map;
 	createTextures(scene.textureFiles, scene.textureNormalFiles);
 }
 
@@ -269,9 +273,7 @@ void A3::enableVertexShaderInputSlots()
 
 	{
 		glBindVertexArray(m_vao_map);
-		std::cout << "about to get position attrib location" << std::endl;
 		m_map_positionAttribLocation = m_shader_map.getAttribLocation("position");
-		std::cout << "got position attrib location" << std::endl;
 		glEnableVertexAttribArray(m_map_positionAttribLocation);
 		CHECK_GL_ERRORS;
 		m_map_normalAttribLocation = m_shader_map.getAttribLocation("normal");
@@ -786,12 +788,11 @@ void A3::renderBeforeGame() {
                 glEnable(GL_BLEND);
                 glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-	//	renderSceneGraph(*m_box);
-		renderMap(*m_box);
-		//renderSceneGraph(*m_startButton);
+		renderSceneGraph(*m_box);
+		renderSceneGraph(*m_startButton);
 
-		//m_spaceship.move();
-                //renderSceneGraph(*(m_spaceship.m_node));
+		m_spaceship.move();
+                renderSceneGraph(*(m_spaceship.m_node));
 
                 glDepthFunc(GL_LEQUAL);
                 renderSkybox();
@@ -809,6 +810,7 @@ void A3::renderAfterGame() {
                 glEnable(GL_BLEND);
                 glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
+		renderMap(*m_map);
 		renderSceneGraph(*m_gameOverText);
                 renderSceneGraph(*m_playAgainButton);
 

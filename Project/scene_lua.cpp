@@ -558,6 +558,17 @@ Scene import_lua(const std::string& filename)
     return Scene();
   }
 
+  GRLUA_DEBUG("Getting back the backgroundfinal");
+
+  lua_pop(L, 1);
+  lua_pushstring(L, "z");
+  lua_gettable(L, -2);
+  gr_background_ud* backFinalData = (gr_background_ud*)luaL_checkudata(L, -1, "gr.background");
+  if (!backFinalData) {
+     std::cerr << "Error loading " << filename << ": Must return the background final." << std::endl;
+    return Scene();
+  }
+
   GRLUA_DEBUG("Gettign the ball node");
   lua_pop(L, 1);
   lua_pushstring(L, "q");
@@ -613,8 +624,18 @@ Scene import_lua(const std::string& filename)
   lua_pushstring(L, "c");
   lua_gettable(L, -2);
   gr_node_ud* boxData = (gr_node_ud*)luaL_checkudata(L, -1, "gr.node");
-  if (!playAgainData) {
+  if (!boxData) {
     std::cerr << "Error loading " << filename << ": Must return the box node." << std::endl;
+    return Scene();
+  }
+
+  GRLUA_DEBUG("Getting teh map node");
+  lua_pop(L, 1);
+  lua_pushstring(L, "m");
+  lua_gettable(L, -2);
+  gr_node_ud* mapData = (gr_node_ud*)luaL_checkudata(L, -1, "gr.node");
+  if (!mapData) {
+    std::cerr << "Error loading " << filename << ": Must return the map node." << std::endl;
     return Scene();
   }
 
@@ -626,6 +647,8 @@ Scene import_lua(const std::string& filename)
   SceneNode* paddleNode = paddleData->node;
 
   Background* background = backData->background;
+
+  Background* backgroundFinal = backFinalData->background;
 	
   SceneNode* startNode = startData->node;
 
@@ -634,6 +657,8 @@ Scene import_lua(const std::string& filename)
   SceneNode* playAgainNode = playAgainData->node;
 
   SceneNode* boxNode = boxData->node;
+
+  SceneNode* mapNode = mapData->node;
 
   GRLUA_DEBUG("Closing the interpreter");
   
@@ -658,9 +683,10 @@ Scene import_lua(const std::string& filename)
   scene.playAgainButton = playAgainNode;
   scene.gameOverText = gameOverNode;
   scene.box = boxNode;
+  scene.map = mapNode;
   scene.images[0] = Image(*background, Camera(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, -10.0f), glm::vec3(0.0f, 1.0f, 0.0f)), 60.0f);
   scene.images[1] = Image(Background(), Camera(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, -5.0f), glm::vec3(0.0f, 1.0f, 0.0f)), 60.0f);
-  scene.images[2] = scene.images[0];
+  scene.images[2] = Image(*backgroundFinal, Camera(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, -10.0f), glm::vec3(0.0f, 1.0f, 0.0f)), 60.0f);
 	
 
   return scene;

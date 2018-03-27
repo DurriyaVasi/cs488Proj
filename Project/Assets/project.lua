@@ -3,9 +3,11 @@ rootnode = gr.node('root')
 rootnode:scale( 0.5, 0.5, 0.5 )
 rootnode:translate(0.0, 0.0, -1.0)
 
---background = gr.background("./Assets/starfield_rt.tga", "./Assets/starfield_lf.tga", "./Assets/starfield_up.tga", "./Assets/starfield_dn.tga", "./Assets/starfield_bk.tga", "./Assets/starfield_ft.tga", 1);
+background1 = gr.background("./Assets/starfield_rt.tga", "./Assets/starfield_lf.tga", "./Assets/starfield_up.tga", "./Assets/starfield_dn.tga", "./Assets/starfield_bk.tga", "./Assets/starfield_ft.tga", 1);
 
-background = gr.background("./Assets/right.jpg", "./Assets/left.jpg", "./Assets/top.jpg", "./Assets/bottom.jpg", "./Assets/back.jpg", "./Assets/front.jpg", 1);
+--background2 = gr.background("./Assets/right.jpg", "./Assets/left.jpg", "./Assets/top.jpg", "./Assets/bottom.jpg", "./Assets/back.jpg", "./Assets/front.jpg", 1);
+
+background2 = gr.background("./Assets/moondust_rt.tga", "./Assets/moondust_lf.tga", "./Assets/moondust_up.tga", "./Assets/moondust_dn.tga", "./Assets/moondust_bk.tga", "./Assets/moondust_ft.tga", 1);
 
 red = gr.material({1.0, 0.0, 0.0}, {0.1, 0.1, 0.1}, 10, 1.0)
 blue = gr.material({0.0, 0.0, 1.0}, {0.1, 0.1, 0.1}, 10, 0.5)
@@ -64,29 +66,30 @@ gameOver:set_texture(gameOverTexture)
 playAgain = gr.mesh('square', 'playAgain')
 playAgain:scale(0.75, 2.0, 0.75)
 playAgain:rotate('z', 90)
+playAgain:translate(0.0, -2.0, 0.0)
 playAgain:set_material(red)
 playAgain:set_texture(playAgainTexture)
 
---box = gr.node('box')
+box = gr.node('box')
 
---box1 = gr.mesh('cube', 'box1')
---box:add_child(box1)
---box1:rotate('y', 45)
---box1:translate(-1, -1, -7)
---box1:set_material(red)
---box1:set_texture(stoneFloorTexture)
+box1 = gr.mesh('cube', 'box1')
+box:add_child(box1)
+box1:rotate('y', 45)
+box1:translate(-1, -1, -7)
+box1:set_material(red)
+box1:set_texture(stoneFloorTexture)
 
---box2 = gr.mesh('cube', 'box2')
---box:add_child(box2)
---box2:rotate('y', 45)
---box2:translate(-1, 1, -7)
---box2:set_material(red)
---box2:set_texture(stoneFloorBumpsTexture)
+box2 = gr.mesh('cube', 'box2')
+box:add_child(box2)
+box2:rotate('y', 45)
+box2:translate(-1, 1, -7)
+box2:set_material(red)
+box2:set_texture(stoneFloorBumpsTexture)
 
-box = gr.mesh('cube', 'box')
-box:rotate('y', 45)
-box:set_material(red)
-box:set_texture(noTexture)
+map = gr.mesh('cube', 'map')
+map:rotate('y', 45)
+map:set_material(red)
+map:set_texture(noTexture)
 
 ballRoot = gr.mesh('sphere', 'ballRoot')
 ballRoot:scale( 0.1, 0.1, 0.1)
@@ -99,4 +102,4 @@ paddleRoot:set_texture(noTexture)
 paddleRoot:set_material(blue)
 
 
-return {r=rootnode, b=background, q=ballRoot, p=paddleRoot, s=startButton, g=gameOver, a=playAgain, c=box}
+return {r=rootnode, b=background1, q=ballRoot, p=paddleRoot, s=startButton, g=gameOver, a=playAgain, c=box, m=map, z=background2}

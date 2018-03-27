@@ -16,4 +16,5 @@ struct Scene {
 	SceneNode *playAgainButton;
 	SceneNode *gameOverText;
 	SceneNode *box;
+	SceneNode *map;
 };
