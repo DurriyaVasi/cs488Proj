@@ -44,11 +44,12 @@ A3::A3(const std::string & luaSceneFile)
 	  m_skyboxData(SkyboxData()),
 	  m_vao_game(0),
 	  m_game_positionAttribLocation(0),
-	  pickingMode(0),
 	  do_picking(false),
 	  leftMousePressed(false),
 	  rightMousePressed(false),
 	  middleMousePressed(false),
+	  leftKeyPressed(false),
+	  rightKeyPressed(false),
 	  oldX(0),
 	  oldY(0),
 	  m_mode(BEFORE_GAME),
@@ -620,8 +621,7 @@ static void updateShaderUniforms(
 		const GeometryNode & node,
 		const glm::mat4 & viewMatrix,
 		const glm::mat4 & modelMatrix,
-		bool pickingMode,
-		bool highlight
+		bool pickingMode
 ) {
 
 	shader.enable();
@@ -669,15 +669,13 @@ static void updateShaderUniforms(
 		glUniform1i(drawPickingMode, pickingMode ? 1 : 0);
 		CHECK_GL_ERRORS;
 		int colour = shader.getUniformLocation("colour");
-		if (!highlight) {
-			unsigned int idx = node.m_nodeId;
-			float r = float(idx&0xff) / 255.0f;
-                	float g = float((idx>>8)&0xff) / 255.0f;
-                	float b = float((idx>>16)&0xff) / 255.0f;
-			glUniform3f(colour, r, g, b);
-		}
-		else {
-			glUniform3f(colour, 1.0, 1.0, 0.0);
+		unsigned int idx = node.m_nodeId;
+		float r = float(idx&0xff) / 255.0f;
+                float g = float((idx>>8)&0xff) / 255.0f;
+                float b = float((idx>>16)&0xff) / 255.0f;
+		glUniform3f(colour, r, g, b);
+		if (pickingMode) {
+		std::cout << "colour for ppicking" << node.m_name << " " << node.m_nodeId << " " << r << " " << g << " " << b << std::endl;
 		}
 		CHECK_GL_ERRORS;
 	}
@@ -734,7 +732,14 @@ void A3::renderGame() {
 }
 
 void A3::drawPaddle() {
+	if (leftKeyPressed) {
+		m_paddle.move(0.1, m_board);
+	}
+	if (rightKeyPressed) {
+		m_paddle.move(-0.1, m_board);
+	}
 	renderGameNode(*(m_paddle.m_node));
+		
 }
 
 CollisionType A3::drawBall() {
@@ -800,7 +805,7 @@ void A3::renderNode(const SceneNode &node, glm::mat4 modelMatrix) {
 	
         	const GeometryNode * geometryNode = static_cast<const GeometryNode *>(&node);
 
-        	updateShaderUniforms(m_shader, *geometryNode, m_images[m_mode].camera.getViewMatrix(), modelMatrix, (pickingMode == 1), (!do_picking && selected[geometryNode->m_nodeId]));
+        	updateShaderUniforms(m_shader, *geometryNode, m_images[m_mode].camera.getViewMatrix(), modelMatrix, do_picking);
 
         	//Get the BatchInfo corresponding to the GeometryNode's unique MeshId.
         	BatchInfo batchInfo = m_batchInfoMap[geometryNode->meshId];
@@ -926,7 +931,7 @@ bool A3::mouseButtonInputEvent (
 
 	if (button == GLFW_MOUSE_BUTTON_LEFT && actions == GLFW_PRESS) {
 		leftMousePressed = true;
-		if (pickingMode == 1) {
+		if (m_mode == BEFORE_GAME) {
                 	double xpos, ypos;
                 	glfwGetCursorPos( m_window, &xpos, &ypos );
 
@@ -958,8 +963,11 @@ bool A3::mouseButtonInputEvent (
                 	CHECK_GL_ERRORS;
 
 			unsigned int what = buffer[0] + (buffer[1] << 8) + (buffer[2] << 16);
-			if (selected.find(what) != selected.end()) {
-				selected[what] = !selected[what];
+
+			std::cout << "colour picked " << buffer[0] << " " << buffer[1] << " " << buffer[2] << " " << buffer[3] << " " << what << std::endl;
+
+			if (what == m_startButton->m_nodeId) {
+				switchMode(DURING_GAME);
 			}
 
 
@@ -1055,25 +1063,24 @@ bool A3::keyInputEvent (
 			glfwSetWindowShouldClose(m_window, GL_TRUE);
                         eventHandled = true;
                 }
-		if (key == GLFW_KEY_P) {
-			pickingMode = 0;
-                        eventHandled = true;
-                }
-		if (key == GLFW_KEY_J) {
-			pickingMode = 1;
-                        eventHandled = true;
-                }
 		if (key == GLFW_KEY_LEFT) {
-			if (m_mode == DURING_GAME) {
-				m_paddle.move(0.2, m_board);
-			}
+			leftKeyPressed = true;
 			eventHandled = true;
 		}
 		if (key == GLFW_KEY_RIGHT) {
-			if (m_mode == DURING_GAME) {
-				m_paddle.move(-0.2, m_board);
-			}
+			rightKeyPressed = true;
+			eventHandled = true;
 		}
+	}
+	if(action == GLFW_RELEASE) {
+		if (key == GLFW_KEY_LEFT) {
+                        leftKeyPressed = false;
+                        eventHandled = true;
+                }
+                if (key == GLFW_KEY_RIGHT) {
+                        rightKeyPressed = false;
+                        eventHandled = true;
+                }
 	}
 	// Fill in with event handling code...
 

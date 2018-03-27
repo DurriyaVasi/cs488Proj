@@ -132,11 +132,12 @@ protected:
 	SkyboxData m_skyboxData;
 	TextureHandler m_textureHandler;
 
-	int pickingMode;
 	bool do_picking;
 	bool leftMousePressed;
 	bool rightMousePressed;
 	bool middleMousePressed;
+	bool leftKeyPressed;
+	bool rightKeyPressed;
 	double oldX;
 	double oldY;
 	std::map<unsigned int, bool> selected; 
