@@ -78,6 +78,7 @@ protected:
 	void renderSkybox();
 	void renderBeforeGame();
 	void renderAfterGame();
+	void renderMap(const SceneNode &box);
 	
 	void renderGame();
 	void drawPaddle();
@@ -122,6 +123,11 @@ protected:
 	GLuint m_vbo_skybox;
 	GLuint m_vao_skybox;
 	GLint m_skybox_positionAttribLocation;
+
+	ShaderProgram m_shader_map;
+	GLuint m_vao_map;
+	GLint m_map_positionAttribLocation;
+	GLint m_map_normalAttribLocation;
 
 	// BatchInfoMap is an associative container that maps a unique MeshId to a BatchInfo
 	// object. Each BatchInfo object contains an index offset and the number of indices
