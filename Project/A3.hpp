@@ -155,4 +155,5 @@ protected:
 	SceneNode *m_startButton;
 	SceneNode *m_playAgainButton;
 	SceneNode *m_gameOverText;
+	SceneNode *m_box;
 };

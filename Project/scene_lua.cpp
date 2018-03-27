@@ -608,6 +608,16 @@ Scene import_lua(const std::string& filename)
     return Scene();
   }
 
+  GRLUA_DEBUG("Getting teh box node");
+  lua_pop(L, 1);
+  lua_pushstring(L, "c");
+  lua_gettable(L, -2);
+  gr_node_ud* boxData = (gr_node_ud*)luaL_checkudata(L, -1, "gr.node");
+  if (!playAgainData) {
+    std::cerr << "Error loading " << filename << ": Must return the box node." << std::endl;
+    return Scene();
+  }
+
   // Store it
   SceneNode* node = data->node;
 
@@ -622,6 +632,8 @@ Scene import_lua(const std::string& filename)
   SceneNode* gameOverNode = gameOverData->node;
 
   SceneNode* playAgainNode = playAgainData->node;
+
+  SceneNode* boxNode = boxData->node;
 
   GRLUA_DEBUG("Closing the interpreter");
   
@@ -645,6 +657,7 @@ Scene import_lua(const std::string& filename)
   scene.startButton = startNode;
   scene.playAgainButton = playAgainNode;
   scene.gameOverText = gameOverNode;
+  scene.box = boxNode;
   scene.images[0] = Image(*background, Camera(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, -10.0f), glm::vec3(0.0f, 1.0f, 0.0f)), 60.0f);
   scene.images[1] = Image(Background(), Camera(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, -5.0f), glm::vec3(0.0f, 1.0f, 0.0f)), 60.0f);
   scene.images[2] = scene.images[0];

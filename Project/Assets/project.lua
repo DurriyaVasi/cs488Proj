@@ -18,6 +18,8 @@ brickTexture = gr.texture(1, './Assets/brickwall.jpg', 0, '')
 startTexture = gr.texture(1, './Assets/startButton.jpg', 0, '')
 gameOverTexture = gr.texture(1, './Assets/gameOver.jpg', 0, '')
 playAgainTexture = gr.texture(1, './Assets/playAgain.jpg', 0, '')
+stoneFloorBumpsTexture = gr.texture(1, './Assets/stonefloor.jpg', 1, './Assets/stonefloor_normal.jpg')
+stoneFloorTexture = gr.texture(1, './Assets/stonefloor.jpg', 0, '')
 
 alienHead = gr.mesh('sphere', 'alienHead')
 rootnode:add_child(alienHead)
@@ -63,6 +65,24 @@ playAgain:rotate('z', 90)
 playAgain:set_material(red)
 playAgain:set_texture(playAgainTexture)
 
+box = gr.node('box')
+--box:scale( 0.5, 0.5, 0.5 )
+--box:translate(0.0, 0.0, -1.0)
+
+box1 = gr.mesh('cube', 'box1')
+box:add_child(box1)
+box1:rotate('y', 45)
+box1:translate(-1, -1, -7)
+box1:set_material(red)
+box1:set_texture(stoneFloorTexture)
+
+box2 = gr.mesh('cube', 'box2')
+box:add_child(box2)
+box2:rotate('y', 45)
+box2:translate(-1, 1, -7)
+box2:set_material(red)
+box2:set_texture(stoneFloorBumpsTexture)
+
 ballRoot = gr.mesh('sphere', 'ballRoot')
 ballRoot:scale( 0.1, 0.1, 0.1)
 ballRoot:set_texture(noTexture)
@@ -74,4 +94,4 @@ paddleRoot:set_texture(noTexture)
 paddleRoot:set_material(blue)
 
 
-return {r=rootnode, b=background, q=ballRoot, p=paddleRoot, s=startButton, g=gameOver, a=playAgain}
+return {r=rootnode, b=background, q=ballRoot, p=paddleRoot, s=startButton, g=gameOver, a=playAgain, c=box}

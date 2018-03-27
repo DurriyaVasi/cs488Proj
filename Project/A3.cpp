@@ -150,7 +150,9 @@ void A3::processLuaSceneFile(const std::string & filename) {
 	if (!scene.gameOverText) {
                 std::cerr << "Could not open gameoverText node " << filename << std::endl;
         }
-
+	if (!scene.box) {
+                std::cerr << "Could not open box node " << filename << std::endl;
+        }
 
 	for (int i = 0; i < 3; i++) {
 		m_images[i] = scene.images[i];
@@ -162,6 +164,7 @@ void A3::processLuaSceneFile(const std::string & filename) {
 	m_startButton = scene.startButton;
 	m_playAgainButton = scene.playAgainButton;
 	m_gameOverText = scene.gameOverText;
+	m_box = scene.box;
 	createTextures(scene.textureFiles, scene.textureNormalFiles);
 }
 
@@ -718,6 +721,7 @@ void A3::renderBeforeGame() {
                 glEnable(GL_BLEND);
                 glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
+		renderSceneGraph(*m_box);
 		renderSceneGraph(*m_startButton);
 
 		m_spaceship.move();
