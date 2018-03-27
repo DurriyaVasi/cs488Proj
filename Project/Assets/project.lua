@@ -16,6 +16,8 @@ noTexture = gr.texture(0, '', 0, '')
 brickBumpsTexture = gr.texture(1, './Assets/brickwall.jpg', 1, './Assets/brickwall_normal.jpg')
 brickTexture = gr.texture(1, './Assets/brickwall.jpg', 0, '')
 startTexture = gr.texture(1, './Assets/startButton.jpg', 0, '')
+gameOverTexture = gr.texture(1, './Assets/gameOver.jpg', 0, '')
+playAgainTexture = gr.texture(1, './Assets/playAgain.jpg', 0, '')
 
 alienHead = gr.mesh('sphere', 'alienHead')
 rootnode:add_child(alienHead)
@@ -48,6 +50,19 @@ startButton:rotate('z', 90)
 startButton:set_material(red)
 startButton:set_texture(startTexture)
 
+gameOver = gr.mesh('square', 'gameOver')
+gameOver:scale(1.5, 3.0, 1.5)
+gameOver:rotate('z', 90)
+gameOver:translate(0.0, 2.0, 0.0)
+gameOver:set_material(red)
+gameOver:set_texture(gameOverTexture)
+
+playAgain = gr.mesh('square', 'playAgain')
+playAgain:scale(0.75, 2.0, 0.75)
+playAgain:rotate('z', 90)
+playAgain:set_material(red)
+playAgain:set_texture(playAgainTexture)
+
 ballRoot = gr.mesh('sphere', 'ballRoot')
 ballRoot:scale( 0.1, 0.1, 0.1)
 ballRoot:set_texture(noTexture)
@@ -59,4 +74,4 @@ paddleRoot:set_texture(noTexture)
 paddleRoot:set_material(blue)
 
 
-return {r=rootnode, b=background, q=ballRoot, p=paddleRoot, s=startButton}
+return {r=rootnode, b=background, q=ballRoot, p=paddleRoot, s=startButton, g=gameOver, a=playAgain}

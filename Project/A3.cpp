@@ -144,6 +144,14 @@ void A3::processLuaSceneFile(const std::string & filename) {
 	if (!scene.startButton) {
 		std::cerr << "Could not open startbutton node " << filename << std::endl;
 	}
+	if (!scene.playAgainButton) {
+                std::cerr << "Could not open playAgainbutton node " << filename << std::endl;
+        }
+	if (!scene.gameOverText) {
+                std::cerr << "Could not open gameoverText node " << filename << std::endl;
+        }
+
+
 	for (int i = 0; i < 3; i++) {
 		m_images[i] = scene.images[i];
 	}
@@ -152,6 +160,8 @@ void A3::processLuaSceneFile(const std::string & filename) {
 	m_ball = Ball(scene.ballNode);
 	m_paddle = Paddle(scene.paddleNode);
 	m_startButton = scene.startButton;
+	m_playAgainButton = scene.playAgainButton;
+	m_gameOverText = scene.gameOverText;
 	createTextures(scene.textureFiles, scene.textureNormalFiles);
 }
 
@@ -695,6 +705,10 @@ void A3::draw() {
 	else if (m_mode == DURING_GAME) {
 		renderGame();
 	}
+
+	else if(m_mode == AFTER_GAME) {
+		renderAfterGame();
+	}
 }
 
 void A3::renderBeforeGame() {
@@ -718,7 +732,24 @@ void A3::renderBeforeGame() {
 		glDisable(GL_BLEND);
 }
 
+void A3::renderAfterGame() {
+		glEnable( GL_CULL_FACE );
+                glCullFace( GL_BACK );
+                glEnable( GL_DEPTH_TEST );
+                glEnable(GL_BLEND);
+                glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
+		renderSceneGraph(*m_gameOverText);
+                renderSceneGraph(*m_playAgainButton);
+
+                glDepthFunc(GL_LEQUAL);
+                renderSkybox();
+                glDepthFunc(GL_LESS);
+
+                glDisable( GL_CULL_FACE );
+                glDisable( GL_DEPTH_TEST );
+                glDisable(GL_BLEND);
+}
 
 void A3::renderGame() {
 	glBindVertexArray(m_vao_game);
@@ -931,7 +962,7 @@ bool A3::mouseButtonInputEvent (
 
 	if (button == GLFW_MOUSE_BUTTON_LEFT && actions == GLFW_PRESS) {
 		leftMousePressed = true;
-		if (m_mode == BEFORE_GAME) {
+		if (m_mode == BEFORE_GAME || m_mode == AFTER_GAME) {
                 	double xpos, ypos;
                 	glfwGetCursorPos( m_window, &xpos, &ypos );
 
@@ -967,7 +998,9 @@ bool A3::mouseButtonInputEvent (
 				switchMode(DURING_GAME);
 			}
 
-
+			else if (what == m_playAgainButton->m_nodeId) {
+				switchMode(BEFORE_GAME);
+			}
 
                 	do_picking = false;
 

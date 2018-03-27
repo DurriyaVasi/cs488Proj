@@ -13,4 +13,6 @@ struct Scene {
 	SceneNode *ballNode;
 	SceneNode *paddleNode;
 	SceneNode *startButton;
+	SceneNode *playAgainButton;
+	SceneNode *gameOverText;
 };

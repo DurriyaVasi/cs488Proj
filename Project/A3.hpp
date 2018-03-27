@@ -77,6 +77,7 @@ protected:
 	void renderNode(const SceneNode &node, glm::mat4 modelMatrix);
 	void renderSkybox();
 	void renderBeforeGame();
+	void renderAfterGame();
 	
 	void renderGame();
 	void drawPaddle();
@@ -152,4 +153,6 @@ protected:
 	Board m_board;
 	Animator m_spaceship;
 	SceneNode *m_startButton;
+	SceneNode *m_playAgainButton;
+	SceneNode *m_gameOverText;
 };
