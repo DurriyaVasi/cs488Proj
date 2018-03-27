@@ -24,6 +24,9 @@
 #include <stack>
 #include <tuple>
 #include <set>
+#include <irrKlang.h>
+
+using namespace irrklang;
 
 struct LightSource {
 	glm::vec3 position;
@@ -150,12 +153,16 @@ protected:
 	std::map<unsigned int, bool> selected; 
 	std::map<unsigned int, SceneNode*> objectToJoint;
 	
+	ISoundEngine *m_soundEngine = createIrrKlangDevice();
+
 	Mode m_mode;	
 
 	Image m_images[3];
 
 	Ball m_ball;
 	Paddle m_paddle;
+	Paddle  m_leftPaddle;
+	Paddle m_rightPaddle;
 	Board m_board;
 	Animator m_spaceship;
 	SceneNode *m_startButton;

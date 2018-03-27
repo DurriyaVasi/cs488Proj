@@ -6,11 +6,13 @@ includeDirList = {
     "../shared",
     "../shared/include",
     "../shared/gl3w",
-    "../shared/imgui"
+    "../shared/imgui",
+    "./irrKlang-64bit-1.6.0/include"
 }
 
 libDirectories = { 
-    "../lib"
+    "../lib",
+    "irrKlang-64bit-1.6.0/bin/linux-gcc-64"
 }
 
 
@@ -39,13 +41,18 @@ if os.get() == "linux" then
         "X11",
         "stdc++",
         "dl",
-        "pthread"
+        "pthread",
+	"IrrKlang"
     }
 end
 
 -- Build Options:
 if os.get() == "macosx" then
     linkOptionList = { "-framework IOKit", "-framework Cocoa", "-framework CoreVideo", "-framework OpenGL" }
+end
+
+if os.get() == "linux" then
+    linkOptionList = { "'-Wl,-rpath,$$ORIGIN/irrKlang-64bit-1.6.0/bin/linux-gcc-64/'" }
 end
 
 buildOptions = {"-std=c++11"}

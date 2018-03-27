@@ -15,6 +15,7 @@ using namespace std;
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtx/io.hpp>
 #include <glm/gtc/matrix_transform.hpp>
+using namespace irrklang;
 
 using namespace glm;
 
@@ -168,6 +169,9 @@ void A3::processLuaSceneFile(const std::string & filename) {
 	m_spaceship = scene.spaceship;
 	m_ball = Ball(scene.ballNode);
 	m_paddle = Paddle(scene.paddleNode);
+	//m_leftPaddle = PaddleLeft(new SceneNode(scene.paddleNode), true);
+	//m_rightPaddle = PaddleLeft(new SceneNode(scene.paddleNode), false);
+	//m_ball2p = Ball2p(new SceneNode(scene.ballNode));
 	m_startButton = scene.startButton;
 	m_playAgainButton = scene.playAgainButton;
 	m_gameOverText = scene.gameOverText;
@@ -829,6 +833,12 @@ void A3::renderGame() {
 	CollisionType collision = drawBall();
 	glBindVertexArray(0);
 	CHECK_GL_ERRORS;
+	if (collision == CollisionType::BALL_BORDER) {
+		m_soundEngine->play2D("./Assets/solid.wav", GL_FALSE);
+	}
+	if(collision == CollisionType::BALL_PADDLE) {
+		m_soundEngine->play2D("./Assets/bleep.wav", GL_FALSE);
+	}
 	if (collision == CollisionType::BALL_FLOOR) {
 		switchMode(AFTER_GAME);
 	}
