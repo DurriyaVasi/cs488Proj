@@ -54,6 +54,7 @@ protected:
 	virtual void draw() override;
 	virtual void cleanup() override;
 
+
 	//-- Virtual callback methods
 	virtual bool cursorEnterWindowEvent(int entered) override;
 	virtual bool mouseMoveEvent(double xPos, double yPos) override;
@@ -73,6 +74,8 @@ protected:
 	void initSelected(SceneNode *root);
 	void setupBackgroundTexture();
 	void createTextures(std::set<string> textureFiles, std::set<string> textureNormalFiles);
+
+	void changePlayer(bool singlePlayer);
 
 	void createPerspectiveMatrix();
 	void uploadCommonSceneUniforms();
@@ -178,6 +181,8 @@ protected:
 	SceneNode *m_startButton;
 	SceneNode *m_playAgainButton;
 	SceneNode *m_gameOverText;
+	SceneNode *m_onePlayerButton;
+	SceneNode *m_twoPlayerButton;
 	SceneNode *m_box;
 	SceneNode *m_map;
 	bool multiPlayer;

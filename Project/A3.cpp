@@ -119,6 +119,8 @@ void A3::init()
 
 	createPerspectiveMatrix();
 
+	changePlayer(true);
+
 	// Exiting the current scope calls delete automatically on meshConsolidator freeing
 	// all vertex data resources.  This is fine since we already copied this data to
 	// VBOs on the GPU.  We have no use for storing vertex data on the CPU side beyond
@@ -176,6 +178,8 @@ void A3::processLuaSceneFile(const std::string & filename) {
 	m_startButton = scene.startButton;
 	m_playAgainButton = scene.playAgainButton;
 	m_gameOverText = scene.gameOverText;
+	m_onePlayerButton = scene.onePlayerButton;
+	m_twoPlayerButton = scene.twoPlayerButton;
 	m_box = scene.box;
 	m_map = scene.map;
 	createTextures(scene.textureFiles, scene.textureNormalFiles);
@@ -766,6 +770,22 @@ static void updateShaderUniforms(
 }
 
 
+void A3::changePlayer(bool singlePlayer) {
+	if (multiPlayer == singlePlayer) {
+		multiPlayer = !singlePlayer;
+		GeometryNode * geometryNodeOne = static_cast<GeometryNode *>(m_onePlayerButton);
+		GeometryNode * geometryNodeTwo = static_cast<GeometryNode *>(m_twoPlayerButton);
+                if (multiPlayer) {
+                       geometryNodeTwo->material.alpha = 1.0;
+		       geometryNodeOne->material.alpha = 0.5;
+                }
+                else {
+                       geometryNodeTwo->material.alpha = 0.5;
+                       geometryNodeOne->material.alpha = 1.0;
+                }
+         }
+}
+
 //----------------------------------------------------------------------------------------
 /*
  * Called once per frame, after guiLogic().
@@ -798,6 +818,9 @@ void A3::renderBeforeGame() {
 
 		m_spaceship.move();
                 renderSceneGraph(*(m_spaceship.m_node));
+		
+		renderSceneGraph(*m_onePlayerButton);
+		renderSceneGraph(*m_twoPlayerButton);
 
                 glDepthFunc(GL_LEQUAL);
                 renderSkybox();
@@ -1035,6 +1058,8 @@ void A3::renderMap(const SceneNode &box) {
 void A3::switchMode(Mode newMode) {
 	if (newMode == BEFORE_GAME) {
 		processLuaSceneFile(m_luaSceneFile);
+		multiPlayer = true;
+		changePlayer(true);
 	}
 	m_mode = newMode;
 	createPerspectiveMatrix();
@@ -1146,6 +1171,14 @@ bool A3::mouseButtonInputEvent (
 
 			else if (what == m_playAgainButton->m_nodeId) {
 				switchMode(BEFORE_GAME);
+			}
+
+			else if (what == m_onePlayerButton->m_nodeId) {
+				changePlayer(true);
+			}
+
+			else if (what == m_twoPlayerButton->m_nodeId) {
+				changePlayer(false);
 			}
 
                 	do_picking = false;

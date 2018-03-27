@@ -639,6 +639,26 @@ Scene import_lua(const std::string& filename)
     return Scene();
   }
 
+  GRLUA_DEBUG("Getting teh onePlayer node");
+  lua_pop(L, 1);
+  lua_pushstring(L, "o");
+  lua_gettable(L, -2);
+  gr_node_ud* onePlayerData = (gr_node_ud*)luaL_checkudata(L, -1, "gr.node");
+  if (!onePlayerData) {
+    std::cerr << "Error loading " << filename << ": Must return the onePlayer node." << std::endl;
+    return Scene();
+  }
+
+  GRLUA_DEBUG("Getting teh twoPlayer node");
+  lua_pop(L, 1);
+  lua_pushstring(L, "t");
+  lua_gettable(L, -2);
+  gr_node_ud* twoPlayerData = (gr_node_ud*)luaL_checkudata(L, -1, "gr.node");
+  if (!twoPlayerData) {
+    std::cerr << "Error loading " << filename << ": Must return the twoPlayer node." << std::endl;
+    return Scene();
+  }
+
   // Store it
   SceneNode* node = data->node;
 
@@ -659,6 +679,10 @@ Scene import_lua(const std::string& filename)
   SceneNode* boxNode = boxData->node;
 
   SceneNode* mapNode = mapData->node;
+
+  SceneNode* onePlayerNode = onePlayerData->node;
+
+  SceneNode* twoPlayerNode = twoPlayerData->node;
 
   GRLUA_DEBUG("Closing the interpreter");
   
@@ -687,7 +711,8 @@ Scene import_lua(const std::string& filename)
   scene.images[0] = Image(*background, Camera(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, -10.0f), glm::vec3(0.0f, 1.0f, 0.0f)), 60.0f);
   scene.images[1] = Image(Background(), Camera(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, -5.0f), glm::vec3(0.0f, 1.0f, 0.0f)), 60.0f);
   scene.images[2] = Image(*backgroundFinal, Camera(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, -10.0f), glm::vec3(0.0f, 1.0f, 0.0f)), 60.0f);
-	
+  scene.onePlayerButton = onePlayerNode;
+  scene.twoPlayerButton = twoPlayerNode;	
 
   return scene;
 }

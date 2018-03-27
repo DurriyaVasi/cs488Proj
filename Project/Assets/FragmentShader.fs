@@ -65,7 +65,7 @@ void main() {
 		vec3 v = normalize(-fs_in.position_ES.xyz);
 		if (hasTexture == 1 && hasBumps == 0) {
 			vec3 kd = vec3(texture(textureData, fs_in.textureCoord));
-			fragColour = vec4(phongModel(l, v, fs_in.normal_ES, kd), 1.0);
+			fragColour = vec4(phongModel(l, v, fs_in.normal_ES, kd), material.alpha);
 		}
 		else if (hasTexture == 1 && hasBumps == 1) {
 			vec3 normal = vec3(texture(textureNormals, fs_in.textureCoord));
@@ -73,7 +73,7 @@ void main() {
 			vec3 kd = vec3(texture(textureData, fs_in.textureCoord));
 			l = fs_in.TBN * l;
 			v = fs_in.TBN * v;
-			fragColour = vec4(phongModel(l, v, normal, kd), 1.0);	
+			fragColour = vec4(phongModel(l, v, normal, kd), material.alpha);	
 		}
 		else {
 			fragColour = vec4(phongModel(l , v, fs_in.normal_ES, material.kd), material.alpha);

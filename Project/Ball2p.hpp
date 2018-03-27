@@ -97,7 +97,7 @@ class Ball2p {
                                 this->greaterThanEqualTo((posToPaddleTop.y), (p1.m_pos.y - p1.m_width))) {
                                 m_node->translate(tToPaddleTop * m_direction);
                                 m_pos = posToPaddleTop;
-                                float percentage = (posToPaddleTop.y - p1.m_pos.y)/(p1.m_width);
+                                float percentage = (posToPaddleTop.y - p1.m_pos.y)/(p1.m_width) * 2.0f;
                                 m_direction = glm::vec3((-1 * m_direction.x), (equalZero(m_direction.y)? percentage: m_direction.y * percentage), m_direction.z);
                                 return CollisionType::BALL_PADDLE;
                         }
@@ -115,7 +115,7 @@ class Ball2p {
                                 this->greaterThanEqualTo((posToPaddleTop.y), (p2.m_pos.y - p2.m_width))) {
 			 	m_node->translate(tToPaddleTop * m_direction);
                                 m_pos = posToPaddleTop;
-                                float percentage = (posToPaddleTop.y - p2.m_pos.y)/(p2.m_width);
+                                float percentage = (posToPaddleTop.y - p2.m_pos.y)/(p2.m_width) * 2.0f;
 				m_direction = glm::vec3((-1 * m_direction.x), (equalZero(m_direction.y)? percentage: m_direction.y * percentage), m_direction.z);
                                 return CollisionType::BALL_PADDLE;
 

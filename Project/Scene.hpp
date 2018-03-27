@@ -17,4 +17,6 @@ struct Scene {
 	SceneNode *gameOverText;
 	SceneNode *box;
 	SceneNode *map;
+	SceneNode *onePlayerButton;
+	SceneNode *twoPlayerButton;
 };

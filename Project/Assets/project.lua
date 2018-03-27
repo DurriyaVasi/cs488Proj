@@ -24,6 +24,8 @@ gameOverTexture = gr.texture(1, './Assets/gameOver.jpg', 0, '')
 playAgainTexture = gr.texture(1, './Assets/playAgain.jpg', 0, '')
 stoneFloorBumpsTexture = gr.texture(1, './Assets/stonefloor.jpg', 1, './Assets/stonefloor_normal.jpg')
 stoneFloorTexture = gr.texture(1, './Assets/stonefloor.jpg', 0, '')
+onePlayerTexture = gr.texture(1, './Assets/1player.png', 0, '');
+twoPlayerTexture = gr.texture(1, './Assets/2players.png', 0, ''); 
 
 alienHead = gr.mesh('sphere', 'alienHead')
 rootnode:add_child(alienHead)
@@ -70,6 +72,20 @@ playAgain:translate(0.0, -2.0, 0.0)
 playAgain:set_material(red)
 playAgain:set_texture(playAgainTexture)
 
+onePlayer = gr.mesh('square', 'onePlayer')
+onePlayer:scale(0.75, 2.0, 0.75)
+onePlayer:rotate('z', 90)
+onePlayer:translate(0.0, -2.0, 0.0)
+onePlayer:set_material(red)
+onePlayer:set_texture(onePlayerTexture)
+
+twoPlayer = gr.mesh('square', 'twoPlayer')
+twoPlayer:scale(0.75, 2.0, 0.75)
+twoPlayer:rotate('z', 90)
+twoPlayer:translate(0.0, -3.5, 0.0)
+twoPlayer:set_material(red)
+twoPlayer:set_texture(twoPlayerTexture)
+
 box = gr.node('box')
 
 box1 = gr.mesh('cube', 'box1')
@@ -102,4 +118,4 @@ paddleRoot:set_texture(noTexture)
 paddleRoot:set_material(blue)
 
 
-return {r=rootnode, b=background1, q=ballRoot, p=paddleRoot, s=startButton, g=gameOver, a=playAgain, c=box, m=map, z=background2}
+return {r=rootnode, b=background1, q=ballRoot, p=paddleRoot, s=startButton, g=gameOver, a=playAgain, c=box, m=map, z=background2, o=onePlayer, t=twoPlayer}
