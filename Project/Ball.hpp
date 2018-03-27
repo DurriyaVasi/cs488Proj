@@ -83,7 +83,7 @@ class Ball {
 				m_node->translate(tToPaddleTop * m_direction);
 				m_pos = posToPaddleTop;
 				float percentage = (posToPaddleTop.x - p.m_pos.x)/(p.m_width) * 2.0f;
-				m_direction = glm::vec3((equalZero(m_direction.x)? percentage: m_direction.x * percentage), (-1 * m_direction.y), m_direction.z);
+				m_direction = glm::normalize(glm::vec3((equalZero(m_direction.x)? percentage: m_direction.x * percentage), (-1 * m_direction.y), m_direction.z));
 				return CollisionType::BALL_PADDLE;
 			}
 			else {
@@ -130,13 +130,13 @@ class Ball {
 			}	
 			m_node->translate(tX * m_direction);
 			m_pos = m_pos + (tX * m_direction);
-			m_direction = glm::vec3((m_direction.x * -1), m_direction.y, m_direction.z);
+			m_direction = glm::normalize(glm::vec3((m_direction.x * -1), m_direction.y, m_direction.z));
 			return CollisionType::BALL_BORDER;
 		}
 		if (hitY) {
 			m_node->translate(tY * m_direction);
 			m_pos = m_pos + (tY * m_direction);
-			m_direction = glm::vec3(m_direction.x, (-1 * m_direction.y), m_direction.z);
+			m_direction = glm::normalize(glm::vec3(m_direction.x, (-1 * m_direction.y), m_direction.z));
 			return CollisionType::BALL_BORDER;
 		}
 

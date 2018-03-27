@@ -74,14 +74,14 @@ class Ball2p {
                         float tY = (b.highYBoundary - circleTop)/(m_direction.y);
                         m_node->translate(tY * m_direction);
                         m_pos = m_pos + (tY * m_direction);
-                        m_direction = glm::vec3(m_direction.x, (-1 * m_direction.y), m_direction.z);
+                        m_direction = glm::normalize(glm::vec3(m_direction.x, (-1 * m_direction.y), m_direction.z));
                         return CollisionType::BALL_BORDER;
                 }
                 if (this->lessThanEqualTo(newCircleBottom, b.lowYBoundary)) {
                         float tY = (b.lowYBoundary - circleBottom)/(m_direction.y);
                         m_node->translate(tY * m_direction);
                         m_pos = m_pos + (tY * m_direction);
-                        m_direction = glm::vec3(m_direction.x, (-1 * m_direction.y), m_direction.z);
+                        m_direction = glm::normalize(glm::vec3(m_direction.x, (-1 * m_direction.y), m_direction.z));
                         return CollisionType::BALL_BORDER;
                 }
 
@@ -98,7 +98,7 @@ class Ball2p {
                                 m_node->translate(tToPaddleTop * m_direction);
                                 m_pos = posToPaddleTop;
                                 float percentage = (posToPaddleTop.y - p1.m_pos.y)/(p1.m_width) * 2.0f;
-                                m_direction = glm::vec3((-1 * m_direction.x), (equalZero(m_direction.y)? percentage: m_direction.y * percentage), m_direction.z);
+                                m_direction = glm::normalize(glm::vec3((-1 * m_direction.x), (equalZero(m_direction.y)? percentage: m_direction.y * percentage), m_direction.z));
                                 return CollisionType::BALL_PADDLE;
                         }
                         else {
@@ -116,7 +116,7 @@ class Ball2p {
 			 	m_node->translate(tToPaddleTop * m_direction);
                                 m_pos = posToPaddleTop;
                                 float percentage = (posToPaddleTop.y - p2.m_pos.y)/(p2.m_width) * 2.0f;
-				m_direction = glm::vec3((-1 * m_direction.x), (equalZero(m_direction.y)? percentage: m_direction.y * percentage), m_direction.z);
+				m_direction = glm::normalize(glm::vec3((-1 * m_direction.x), (equalZero(m_direction.y)? percentage: m_direction.y * percentage), m_direction.z));
                                 return CollisionType::BALL_PADDLE;
 
 			}

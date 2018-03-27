@@ -1285,10 +1285,8 @@ bool A3::keyInputEvent (
 			eventHandled = true;
 		}
 		if (key == GLFW_KEY_UP) {
-			std::cout << "press upkeypresed" << upKeyPressed << std::endl;
 			upKeyPressed = true;
 			eventHandled = true;
-			std::cout << "press upkeypresed" << upKeyPressed << std::endl;
 		}
 		if (key == GLFW_KEY_DOWN) {
 			downKeyPressed = true;
@@ -1315,7 +1313,6 @@ bool A3::keyInputEvent (
 		if (key == GLFW_KEY_UP) {
                         upKeyPressed = false;
                         eventHandled = true;
-			std::cout << "rellease upkeypressed" << upKeyPressed << std::endl;
                 }
                 if (key == GLFW_KEY_DOWN) {
                         downKeyPressed = false;
