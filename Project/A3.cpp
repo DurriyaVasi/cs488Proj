@@ -54,10 +54,14 @@ A3::A3(const std::string & luaSceneFile)
 	  middleMousePressed(false),
 	  leftKeyPressed(false),
 	  rightKeyPressed(false),
+	  upKeyPressed(false),
+	  downKeyPressed(false),
+	  xKeyPressed(false),
+	  dKeyPressed(false),
 	  oldX(0),
 	  oldY(0),
 	  m_mode(BEFORE_GAME),
-	  m_board(Board(-2, -2, 2, 2)),
+	  m_board(Board(-3.8, -2.85, 3.8, 2.85)),
 	  multiPlayer(true)
 {
 }
@@ -1281,8 +1285,10 @@ bool A3::keyInputEvent (
 			eventHandled = true;
 		}
 		if (key == GLFW_KEY_UP) {
+			std::cout << "press upkeypresed" << upKeyPressed << std::endl;
 			upKeyPressed = true;
 			eventHandled = true;
+			std::cout << "press upkeypresed" << upKeyPressed << std::endl;
 		}
 		if (key == GLFW_KEY_DOWN) {
 			downKeyPressed = true;
@@ -1309,6 +1315,7 @@ bool A3::keyInputEvent (
 		if (key == GLFW_KEY_UP) {
                         upKeyPressed = false;
                         eventHandled = true;
+			std::cout << "rellease upkeypressed" << upKeyPressed << std::endl;
                 }
                 if (key == GLFW_KEY_DOWN) {
                         downKeyPressed = false;

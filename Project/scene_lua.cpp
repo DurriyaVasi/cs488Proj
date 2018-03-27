@@ -691,10 +691,10 @@ Scene import_lua(const std::string& filename)
 
   // And return the node
   std::queue<glm::vec3> shipPositions;
-  shipPositions.push(glm::vec3(-3, 0, 0));
-  shipPositions.push(glm::vec3(-1.5, 2, 0));
-  shipPositions.push(glm::vec3(1.5, 2, 0));
-  shipPositions.push(glm::vec3(3, 0, 0));
+  shipPositions.push(glm::vec3(-6, 0, -3));
+  shipPositions.push(glm::vec3(-1.5, 2.0, -3));
+  shipPositions.push(glm::vec3(1.5, 2.0, -3));
+  shipPositions.push(glm::vec3(6, 0, -3));
   KeyFrame kf = KeyFrame(shipPositions, 0.03);
   Animator spaceship = Animator(node, kf);
   Scene scene;

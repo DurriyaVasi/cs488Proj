@@ -33,12 +33,12 @@ class PaddleLeft {
 		  m_node(node) {
 		if (left) {
 			node->rotate('z', 90);
-			m_pos = glm::vec3(-2, 0, 0);
+			m_pos = glm::vec3(-2.0, 0, 0);
 			node->translate(m_pos);
 		}
 		else {
 			node->rotate('z', -90);
-			m_pos = glm::vec3(2, 0, 0);
+			m_pos = glm::vec3(2.0, 0, 0);
 			node->translate(m_pos);
 		}
 		m_node->translate(m_pos);
@@ -49,8 +49,8 @@ class PaddleLeft {
 		if ((newPos.y + m_width) > b.highYBoundary) {
 			newPos = glm::vec3(m_pos.x, b.highYBoundary - m_width, m_pos.z);
 		}
-		else if ((newPos.y - m_width) < b.lowXBoundary) {
-			newPos = glm::vec3(m_pos.x, b.lowXBoundary + m_width, m_pos.z);
+		else if ((newPos.y - m_width) < b.lowYBoundary) {
+			newPos = glm::vec3(m_pos.x, b.lowYBoundary + m_width, m_pos.z);
 		}
 		
 		m_node->translate(newPos - m_pos);
