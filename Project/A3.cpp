@@ -674,9 +674,6 @@ static void updateShaderUniforms(
                 float g = float((idx>>8)&0xff) / 255.0f;
                 float b = float((idx>>16)&0xff) / 255.0f;
 		glUniform3f(colour, r, g, b);
-		if (pickingMode) {
-		std::cout << "colour for ppicking" << node.m_name << " " << node.m_nodeId << " " << r << " " << g << " " << b << std::endl;
-		}
 		CHECK_GL_ERRORS;
 	}
 	shader.disable();
@@ -729,6 +726,9 @@ void A3::renderGame() {
 	CollisionType collision = drawBall();
 	glBindVertexArray(0);
 	CHECK_GL_ERRORS;
+	if (collision == CollisionType::BALL_FLOOR) {
+		switchMode(AFTER_GAME);
+	}
 }
 
 void A3::drawPaddle() {
@@ -963,9 +963,6 @@ bool A3::mouseButtonInputEvent (
                 	CHECK_GL_ERRORS;
 
 			unsigned int what = buffer[0] + (buffer[1] << 8) + (buffer[2] << 16);
-
-			std::cout << "colour picked " << buffer[0] << " " << buffer[1] << " " << buffer[2] << " " << buffer[3] << " " << what << std::endl;
-
 			if (what == m_startButton->m_nodeId) {
 				switchMode(DURING_GAME);
 			}
