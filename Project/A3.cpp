@@ -57,7 +57,8 @@ A3::A3(const std::string & luaSceneFile)
 	  oldX(0),
 	  oldY(0),
 	  m_mode(BEFORE_GAME),
-	  m_board(Board(-2, -2, 2, 2))
+	  m_board(Board(-2, -2, 2, 2)),
+	  multiPlayer(true)
 {
 }
 
@@ -169,9 +170,9 @@ void A3::processLuaSceneFile(const std::string & filename) {
 	m_spaceship = scene.spaceship;
 	m_ball = Ball(scene.ballNode);
 	m_paddle = Paddle(scene.paddleNode);
-	//m_leftPaddle = PaddleLeft(new SceneNode(scene.paddleNode), true);
-	//m_rightPaddle = PaddleLeft(new SceneNode(scene.paddleNode), false);
-	//m_ball2p = Ball2p(new SceneNode(scene.ballNode));
+	m_leftPaddle = PaddleLeft(new GeometryNode(*(static_cast<const GeometryNode *>(scene.paddleNode))), true);
+	m_rightPaddle = PaddleLeft(new GeometryNode(*(static_cast<const GeometryNode *>(scene.paddleNode))), false);
+	m_ball2 = Ball2p(new GeometryNode(*(static_cast<const GeometryNode *>(scene.ballNode))));
 	m_startButton = scene.startButton;
 	m_playAgainButton = scene.playAgainButton;
 	m_gameOverText = scene.gameOverText;
@@ -829,8 +830,16 @@ void A3::renderAfterGame() {
 
 void A3::renderGame() {
 	glBindVertexArray(m_vao_game);
-	drawPaddle();
-	CollisionType collision = drawBall();
+	CollisionType collision;
+	if (multiPlayer) {
+		drawPaddleLeft();
+		drawPaddleRight();
+		collision = drawBall2();
+	}
+	else {
+		drawPaddle();
+		collision = drawBall();
+	}	
 	glBindVertexArray(0);
 	CHECK_GL_ERRORS;
 	if (collision == CollisionType::BALL_BORDER) {
@@ -846,14 +855,35 @@ void A3::renderGame() {
 
 void A3::drawPaddle() {
 	if (leftKeyPressed) {
-		m_paddle.move(0.1, m_board);
+		m_paddle.move(0.05, m_board);
 	}
 	if (rightKeyPressed) {
-		m_paddle.move(-0.1, m_board);
+		m_paddle.move(-0.05, m_board);
 	}
 	renderGameNode(*(m_paddle.m_node));
 		
 }
+
+void A3::drawPaddleLeft() {
+	if (upKeyPressed) {
+		m_leftPaddle.move(0.05, m_board);
+	}
+	if (downKeyPressed) {
+		m_leftPaddle.move(-0.05, m_board);
+	}
+	renderGameNode(*(m_leftPaddle.m_node));
+}
+
+void A3::drawPaddleRight() {
+        if (dKeyPressed) {
+                m_rightPaddle.move(0.05, m_board);
+        }
+        if (xKeyPressed) {
+                m_rightPaddle.move(-0.05, m_board);
+        }
+        renderGameNode(*(m_rightPaddle.m_node));
+}
+
 
 CollisionType A3::drawBall() {
 	CollisionType collision = m_ball.move(m_paddle, m_board);
@@ -862,6 +892,11 @@ CollisionType A3::drawBall() {
 	//return CollisionType::NONE;	
 }
 
+CollisionType A3::drawBall2() {
+	CollisionType collision = m_ball2.move(m_leftPaddle, m_rightPaddle, m_board);
+        renderGameNode(*(m_ball2.m_node));
+        return collision;
+}
 //----------------------------------------------------------------------------------------
 void A3::renderSceneGraph(const SceneNode & root) {
 
@@ -1212,6 +1247,22 @@ bool A3::keyInputEvent (
 			rightKeyPressed = true;
 			eventHandled = true;
 		}
+		if (key == GLFW_KEY_UP) {
+			upKeyPressed = true;
+			eventHandled = true;
+		}
+		if (key == GLFW_KEY_DOWN) {
+			downKeyPressed = true;
+			eventHandled = true;
+		}
+		if (key == GLFW_KEY_D) {
+			dKeyPressed = true;
+			eventHandled = true;
+		}
+		if (key == GLFW_KEY_X) {
+			xKeyPressed = true;
+			eventHandled = true;
+		}
 	}
 	if(action == GLFW_RELEASE) {
 		if (key == GLFW_KEY_LEFT) {
@@ -1220,6 +1271,22 @@ bool A3::keyInputEvent (
                 }
                 if (key == GLFW_KEY_RIGHT) {
                         rightKeyPressed = false;
+                        eventHandled = true;
+                }
+		if (key == GLFW_KEY_UP) {
+                        upKeyPressed = false;
+                        eventHandled = true;
+                }
+                if (key == GLFW_KEY_DOWN) {
+                        downKeyPressed = false;
+                        eventHandled = true;
+                }
+                if (key == GLFW_KEY_D) {
+                        dKeyPressed = false;
+                        eventHandled = true;
+                }
+                if (key == GLFW_KEY_X) {
+                        xKeyPressed = false;
                         eventHandled = true;
                 }
 	}

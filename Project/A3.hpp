@@ -17,6 +17,8 @@
 #include "Camera.hpp"
 #include "CollisionType.hpp"
 #include "Animator.hpp"
+#include "PaddleLeft.hpp"
+#include "Ball2p.hpp"
 
 #include <glm/glm.hpp>
 #include <memory>
@@ -85,7 +87,10 @@ protected:
 	
 	void renderGame();
 	void drawPaddle();
+	void drawPaddleLeft();
+	void drawPaddleRight();
 	CollisionType drawBall();
+	CollisionType drawBall2();
 	void renderGameNode(const SceneNode &node);
 
 	void undo();
@@ -148,6 +153,10 @@ protected:
 	bool middleMousePressed;
 	bool leftKeyPressed;
 	bool rightKeyPressed;
+	bool upKeyPressed;
+	bool downKeyPressed;
+	bool dKeyPressed;
+	bool xKeyPressed;
 	double oldX;
 	double oldY;
 	std::map<unsigned int, bool> selected; 
@@ -160,9 +169,10 @@ protected:
 	Image m_images[3];
 
 	Ball m_ball;
+	Ball2p m_ball2;
 	Paddle m_paddle;
-	Paddle  m_leftPaddle;
-	Paddle m_rightPaddle;
+	PaddleLeft m_leftPaddle;
+	PaddleLeft m_rightPaddle;
 	Board m_board;
 	Animator m_spaceship;
 	SceneNode *m_startButton;
@@ -170,4 +180,5 @@ protected:
 	SceneNode *m_gameOverText;
 	SceneNode *m_box;
 	SceneNode *m_map;
+	bool multiPlayer;
 };
