@@ -15,6 +15,7 @@ grey = gr.material({0.5, 0.5, 0.5}, {0.99, 0.99, 0.99}, 20, 1.0)
 noTexture = gr.texture(0, '', 0, '')
 brickBumpsTexture = gr.texture(1, './Assets/brickwall.jpg', 1, './Assets/brickwall_normal.jpg')
 brickTexture = gr.texture(1, './Assets/brickwall.jpg', 0, '')
+startTexture = gr.texture(1, './Assets/startButton.jpg', 0, '')
 
 alienHead = gr.mesh('sphere', 'alienHead')
 rootnode:add_child(alienHead)
@@ -41,6 +42,12 @@ ufoBottom:scale(2.0, 0.5, 2.0)
 ufoBottom:set_material(grey)
 ufoBottom:set_texture(noTexture)
 
+startButton = gr.mesh('square', 'startButton')
+startButton:scale(0.75, 2.0, 0.75)
+startButton:rotate('z', 90)
+startButton:set_material(red)
+startButton:set_texture(startTexture)
+
 ballRoot = gr.mesh('sphere', 'ballRoot')
 ballRoot:scale( 0.1, 0.1, 0.1)
 ballRoot:set_texture(noTexture)
@@ -52,4 +59,4 @@ paddleRoot:set_texture(noTexture)
 paddleRoot:set_material(blue)
 
 
-return {r=rootnode, b=background, q=ballRoot, p=paddleRoot}
+return {r=rootnode, b=background, q=ballRoot, p=paddleRoot, s=startButton}

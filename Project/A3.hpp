@@ -150,4 +150,5 @@ protected:
 	Paddle m_paddle;
 	Board m_board;
 	Animator m_spaceship;
+	SceneNode *m_startButton;
 };

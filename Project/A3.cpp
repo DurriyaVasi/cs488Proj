@@ -94,7 +94,8 @@ void A3::init()
 			getAssetFilePath("cube.obj"),
 			getAssetFilePath("sphere.obj"),
 			getAssetFilePath("suzanne.obj"),
-			getAssetFilePath("triangle.obj")
+			getAssetFilePath("triangle.obj"),
+			getAssetFilePath("square.obj")
 	});
 
 	// Acquire the BatchInfoMap from the MeshConsolidator.
@@ -139,6 +140,9 @@ void A3::processLuaSceneFile(const std::string & filename) {
 	if (!scene.paddleNode) {	
 		std::cerr << "Could not open paddleNode " << filename << std::endl;
 	}
+	if (!scene.startButton) {
+		std::cerr << "Could not open startbutton node " << filename << std::endl;
+	}
 	for (int i = 0; i < 3; i++) {
 		m_images[i] = scene.images[i];
 	}
@@ -146,7 +150,7 @@ void A3::processLuaSceneFile(const std::string & filename) {
 	m_spaceship = scene.spaceship;
 	m_ball = Ball(scene.ballNode);
 	m_paddle = Paddle(scene.paddleNode);
-
+	m_startButton = scene.startButton;
 	createTextures(scene.textureFiles, scene.textureNormalFiles);
 }
 
@@ -704,6 +708,8 @@ void A3::renderBeforeGame() {
                 glEnable( GL_DEPTH_TEST );
                 glEnable(GL_BLEND);
                 glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+		renderSceneGraph(*m_startButton);
 
 		m_spaceship.move();
                 renderSceneGraph(*(m_spaceship.m_node));

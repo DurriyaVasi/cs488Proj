@@ -12,4 +12,5 @@ struct Scene {
 	Image images[3];
 	SceneNode *ballNode;
 	SceneNode *paddleNode;
+	SceneNode *startButton;
 };
