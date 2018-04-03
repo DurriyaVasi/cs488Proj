@@ -1,0 +1,41 @@
+To run program, run the following command:
+
+pramke4 gmake
+make clean
+make
+
+Then go to Project folder and run the following commands:
+
+premake4 gmake
+make clean
+make
+./A3 ./Assets/project.lua
+
+
+select whether you ant to play in one play or two player mode
+press start
+
+For one player mode, Press left and right arrow keys to move paddle
+
+For two player mode, 
+	Left Player: Press x and d keys to move paddle
+	Right Player: Press up and down arrow keys to move paddle
+
+once game is over, press play again on game over page to start again
+
+Objectives:
+1)	Modelling the scene
+2)	UI
+3)	Static Collision Detection
+4)	Synchronized Sound
+5)	Texture Mapping
+6)	Normal Mapping
+7)	Transparency using blending
+8)	Dynamic collision detection
+9)	Amination (keyframe with linear interpolation)
+10)	Skybox (with refelction map?)
+
+stbi_image.h was copied form an internet source to load images
+irrklang library was use dot produce sound
+
+tested on gl36.student.cs
